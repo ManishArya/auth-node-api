@@ -1,0 +1,57 @@
+{
+  "definition": {
+    "openapi": "3.0.0",
+    "info": {
+      "title": "Auth API",
+      "version": "0.0.1"
+    },
+    "servers": [
+      {
+        "url": "http://localhost:{port}/{basePath}",
+        "description": "Development server",
+        "variables": {
+          "port": {
+            "enum": ["3000"],
+            "default": "3000"
+          },
+          "basePath": {
+            "default": "api"
+          }
+        }
+      },
+      {
+        "url": "https://auth-server-api-svc.herokuapp.com/{basePath}",
+        "description": "Production server",
+        "variables": {
+          "basePath": {
+            "default": "api"
+          }
+        }
+      }
+    ],
+    "tags": [
+      {
+        "name": "Authentication API",
+        "description": "Authentication"
+      },
+      {
+        "name": "Manage User API",
+        "description": "Managing user related operations"
+      },
+      {
+        "name": "User API",
+        "description": "Perform user related operations"
+      }
+    ],
+    "components": {
+      "securitySchemes": {
+        "bearerAuth": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT"
+        }
+      }
+    }
+  },
+  "apis": ["./src/controllers/**/*.ts", "./src/models/**/*.ts", "./swagger/**/*.yaml"]
+}

@@ -1,0 +1,37 @@
+{
+  "env": {
+    "browser": true,
+    "commonjs": true,
+    "es2021": true,
+    "node": true
+  },
+  "extends": [
+    "google",
+    "prettier",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 2020, // Allows for the parsing of modern ECMAScript features
+    "sourceType": "module" // Allows for the use of imports
+  },
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "rules": {
+    "default-case": "error",
+    "no-fallthrough": "error",
+    "eqeqeq": ["error", "always"],
+    "radix": "error",
+    "no-unused-vars": "error",
+    "max-depth": ["error", 4],
+    "max-params": ["error", 3],
+    "complexity": ["error", 3],
+    "max-nested-callbacks": ["error", 3],
+    "no-bitwise": "error",
+    "no-continue": "error",
+    "no-var": "error",
+    "prefer-const": "error",
+    "new-cap": 0,
+    "require-jsdoc": 0
+  }
+}

@@ -1,0 +1,12 @@
+components:
+  examples:
+    loginWithUsername:
+      value: { 'username': 'admin', 'password': 'write your password here' }
+    loginWithEmail:
+      value: { 'email': 'manisharya26@gmail.com', 'password': 'write your password here' }
+    token:
+      value: { 'code': 0, 'data': { 'token': 'token string' } }
+    failure:
+      value: { 'code': 1, 'message': 'operation failed' }
+    success:
+      value: { 'code': 0, 'message': 'sucess' }

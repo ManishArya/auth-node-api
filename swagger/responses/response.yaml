@@ -1,0 +1,19 @@
+components:
+  responses:
+    500:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    200:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+          examples:
+            success:
+              $ref: '#/components/examples/success'
+            failure:
+              $ref: '#/components/examples/failure'

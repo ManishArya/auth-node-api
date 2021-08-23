@@ -1,0 +1,37 @@
+components:
+  schemas:
+    Login:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          writeOnly: true
+      required:
+        - username
+        - password
+    Token:
+      type: object
+      properties:
+        token:
+          type: string
+    Password:
+      type: object
+      properties:
+        password:
+          type: string
+        confirmPassword:
+          type: string
+      required:
+        - password
+        - confirmPassword
+    ApiCollectionResponse:
+      type: object
+      properties:
+        code:
+          type: number
+        data:
+          type: array
+          items:
+            $ref: '#components/schemas/UserProfile'

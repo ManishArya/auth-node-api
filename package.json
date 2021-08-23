@@ -1,0 +1,62 @@
+{
+  "name": "autentication",
+  "version": "0.0.1",
+  "description": "authentication validations",
+  "main": "app.js",
+  "scripts": {
+    "test": "nyc --reporter=html mocha 'tests/**/*.js' --recursive",
+    "watch": "nyc --reporter=html mocha 'tests/**/*.js' --recursive --watch",
+    "posttest": "eslint src/**/*.ts",
+    "eslint": "eslint src/**/*.ts",
+    "eslint-prettier": "eslint-config-prettier src/**/*.ts",
+    "dev": "nodemon -r dotenv/config --exec ts-node ./src/app.ts",
+    "prepare": "husky install",
+    "start": "node dist/app.js",
+    "postinstall": "tsc"
+  },
+  "engines": {
+    "node": "14.x"
+  },
+  "author": "Manish",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.0.1",
+    "config": "^3.3.6",
+    "cors": "^2.8.5",
+    "ejs": "^3.1.6",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.13.5",
+    "multer": "^1.4.3",
+    "nodemailer": "^6.6.2",
+    "swagger-jsdoc": "^6.1.0",
+    "swagger-ui-express": "^4.1.6",
+    "winston": "^3.3.3"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
+    "@types/config": "0.0.39",
+    "@types/cors": "^2.8.12",
+    "@types/express": "^4.17.13",
+    "@types/jsonwebtoken": "^8.5.4",
+    "@types/multer": "^1.4.7",
+    "@types/node": "^16.6.1",
+    "@types/nodemailer": "^6.4.4",
+    "@types/swagger-jsdoc": "^6.0.1",
+    "@types/swagger-ui-express": "^4.1.3",
+    "@typescript-eslint/eslint-plugin": "^4.29.2",
+    "@typescript-eslint/parser": "^4.29.2",
+    "chai": "^4.3.4",
+    "chai-http": "^4.3.0",
+    "chai-spies": "^1.0.0",
+    "eslint": "^7.32.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-config-prettier": "^8.3.0",
+    "husky": "^7.0.0",
+    "mocha": "^9.0.2",
+    "nyc": "^15.1.0",
+    "ts-node": "^10.2.0",
+    "dotenv": "^10.0.0",
+    "typescript": "^4.3.5"
+  }
+}

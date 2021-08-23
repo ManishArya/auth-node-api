@@ -1,0 +1,5 @@
+{
+  "db": {
+    "connectionString": "mongodb+srv://username:password@cluster0.uoei7.mongodb.net/Auth?retryWrites=true&w=majority"
+  }
+}

@@ -13,22 +13,22 @@ export default class AuthService {
   public static currentUser: UserInfo;
   static async validateUser(username: string, email: string, password: string) {
     const user = await UserDal.getUser({ $or: [{ username }, { email }] });
-    const isPassed = await this.isValidPassword(password, user);
-    if (isPassed) {
+    const isValid = await this.isValidPassword(password, user);
+    if (isValid) {
       const token = this.generateJwtToken(user);
       return new ApiDataResponse({ token });
     }
     return new ApiResponse(STATUS_CODE_BAD_REQUEST, 'Credential is wrong !!!');
   }
 
-  static async isValidPassword(password: string, user: any) {
+  private static async isValidPassword(password: string, user: any): Promise<boolean> {
     if (user && password) {
       return await bcrypt.compare(password, user.password);
     }
-    return false;
+    return Promise.resolve(false);
   }
 
-  static generateJwtToken(user: any) {
+  private static generateJwtToken(user: any): string {
     const secretKey = process.env.jwt_secret_key as jwt.Secret;
     return jwt.sign(JSON.stringify(new UserInfo(user)), secretKey);
   }
@@ -48,7 +48,7 @@ export default class AuthService {
   }
 
   static async changePassword(password: string, confirmPassword: string) {
-    if (password !== confirmPassword) {
+    if (password.localeCompare(confirmPassword) !== 0) {
       return new ApiResponse(STATUS_CODE_BAD_REQUEST, 'password and confirm password does not match !!!');
     }
     if (/^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*-+]).{6,15}$/.test(password)) {

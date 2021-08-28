@@ -1,9 +1,9 @@
 import express from 'express';
-import logger from '../utils/logger';
-import ManageUserService from '../services/manage-user.service';
-import ApiErrorResponse from '../models/api-error-response';
 import verifyJwtToken from '../middlewares/verify-jwt-token';
+import ApiErrorResponse from '../models/api-error-response';
+import ManageUserService from '../services/manage-user.service';
 import upload from '../utils/image-uploader';
+import logger from '../utils/logger';
 const router = express.Router();
 
 /**

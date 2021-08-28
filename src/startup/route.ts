@@ -1,3 +1,4 @@
+import { Application } from 'express';
 import SwaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import auth from '../controllers/auth.controller';
@@ -7,7 +8,7 @@ import user from '../controllers/user.controller';
 const swaggerOptionsJson = require('./../../swagger/swagger-options.json');
 const swaggerdoc = SwaggerJSDoc(swaggerOptionsJson);
 
-export default function (app: any) {
+export default function (app: Application) {
   app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerdoc));
   app.use('/api', auth);
   app.use('/api/user', user);

@@ -1,11 +1,11 @@
-import ApiDataResponse from '../models/api-data-response';
-import ApiResponse from '../models/api-response';
-import sendEmail from '../utils/sendEmail';
-import UserDal from '../data-access/user.dal';
 import bcrypt from 'bcrypt';
 import { STATUS_CODE_BAD_REQUEST, STATUS_CODE_SUCCESS } from '../constants/status-code.const';
+import UserDal from '../data-access/user.dal';
+import ApiDataResponse from '../models/api-data-response';
+import ApiResponse from '../models/api-response';
 import MailOptions from '../models/mail-options';
-
+import sendEmail from '../utils/sendEmail';
+const SALT_ROUNDS = 10;
 export default class ManageUserService {
   static async saveUser(userData: any) {
     const hashPassword = await convertPasswordIntoHash(userData.password);
@@ -20,7 +20,7 @@ export default class ManageUserService {
       await sendEmail(mailOptions);
       return new ApiDataResponse(user.toObject());
     }
-    return new ApiResponse(STATUS_CODE_BAD_REQUEST, 'password error');
+    return new ApiResponse(STATUS_CODE_BAD_REQUEST, 'password does not meet policy criteria');
   }
 
   static async getUsers() {
@@ -37,7 +37,7 @@ export default class ManageUserService {
 
 async function convertPasswordIntoHash(password: string) {
   if (/^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*-+]).{6,15}$/.test(password)) {
-    return await bcrypt.hash(password, 10);
+    return await bcrypt.hash(password, SALT_ROUNDS);
   }
   return null;
 }

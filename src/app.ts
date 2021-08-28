@@ -1,9 +1,9 @@
+import cors from 'cors';
 import express from 'express';
 import db from './startup/db';
-import cors from 'cors';
-import logger from './utils/logger';
 import route from './startup/route';
-const isDevelopment = (process.env.NODE_ENV || 'development') === 'development';
+import logger from './utils/logger';
+
 const app = express();
 app.use(express.json());
 app.set('view engine', 'ejs');
@@ -12,11 +12,8 @@ route(app);
 db();
 const port = process.env.PORT || 3000;
 
-app.listen(port, () => {
-  const message = `App listening on port ${port}!`;
-  isDevelopment ? console.log(message) : logger.info(message);
-});
+app.listen(port, () => logger.info(`App listening on port ${port}!`));
 
-process.on('uncaughtException', (err) => (isDevelopment ? console.error(err) : logger.error(err)));
+process.on('uncaughtException', (err) => logger.error(err));
 
 export default app;

@@ -1,7 +1,8 @@
-import nodemailer from 'nodemailer';
 import config from 'config';
+import nodemailer from 'nodemailer';
+import MailOptions from '../models/mail-options';
 
-export default async function sendEmail(mailOptions: any) {
+export default async function sendEmail(mailOptions: MailOptions) {
   const transport = nodemailer.createTransport({
     service: config.get('mail.service') as string,
     host: config.get('mail.host') as string,

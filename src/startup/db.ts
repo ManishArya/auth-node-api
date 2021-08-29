@@ -1,5 +1,6 @@
-import { connect } from 'mongoose';
 import config from 'config';
+import { connect } from 'mongoose';
+import logger from '../utils/logger';
 
 export default function () {
   const isProduction = (process.env.NODE_ENV || 'development') === 'production';
@@ -15,5 +16,5 @@ export default function () {
     useNewUrlParser: true,
     useCreateIndex: true,
     useFindAndModify: false
-  }).then(() => console.log('connected to db'));
+  }).then(() => logger.info('connected to db'));
 }

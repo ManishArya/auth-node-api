@@ -1,8 +1,8 @@
 import express from 'express';
+import verifyJwtToken from '../middlewares/verify-jwt-token';
+import ApiErrorResponse from '../models/api-error-response';
 import AuthService from '../services/auth.service';
 import logger from '../utils/logger';
-import ApiErrorResponse from '../models/api-error-response';
-import verifyJwtToken from '../middlewares/verify-jwt-token';
 const router = express.Router();
 
 /**

@@ -1,10 +1,17 @@
 import chai from 'chai';
 import spies from 'chai-spies';
+import mongoose from 'mongoose';
 import UserDal from '../src/data-access/user.dal';
 import User from '../src/models/user';
 const expect = chai.use(spies).expect;
 
 describe('User dal', () => {
+  beforeEach(() => {
+    mongoose.Collection.prototype.insert = (docs: any, options: any, callback: any) => {
+      callback(null, docs);
+    };
+  });
+
   afterEach(() => {
     chai.spy.restore(User);
   });
@@ -58,13 +65,6 @@ describe('User dal', () => {
   });
 
   it('should call save', () => {
-    const user = new User({ name: 'test' });
-    const spy = chai.spy.on(user, 'save', function (cb) {
-      cb(null);
-    });
-
-    UserDal.saveUser({});
-
-    expect(spy).to.have.called();
+    UserDal.saveUser({ mobile: 777 });
   });
 });

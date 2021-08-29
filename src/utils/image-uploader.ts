@@ -2,7 +2,7 @@ import config from 'config';
 import multer from 'multer';
 import path from 'path';
 
-export default (directoryPath?: any) => {
+export default () => {
   const storage = multer.memoryStorage();
   return multer({
     storage,

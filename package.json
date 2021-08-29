@@ -4,8 +4,9 @@
   "description": "Authentication API",
   "main": "app.js",
   "scripts": {
-    "test": "nyc --reporter=html mocha -r ts-node/register  'tests/**/*.ts'",
+    "test": "mocha --exit -r ts-node/register  'tests/**/*.ts'",
     "watch": "npm test -- --watch --watch-files  tests/**/*.ts ",
+    "coverage": "nyc --reporter=html --reporter=text-summary npm run test",
     "posttest": "eslint src/**/*.ts",
     "eslint": "npm run posttest",
     "eslint-prettier": "eslint-config-prettier src/**/*.ts",

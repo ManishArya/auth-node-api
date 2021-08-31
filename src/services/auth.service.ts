@@ -29,8 +29,12 @@ export default class AuthService {
   }
 
   private static generateJwtToken(user: any): string {
-    const secretKey = process.env.jwt_secret_key as jwt.Secret;
-    return jwt.sign(JSON.stringify(new UserInfo(user)), secretKey);
+    const key = process.env.jwt_secret_key as string;
+    return jwt.sign({ username: user.username }, key, {
+      expiresIn: '1d',
+      audience: process.env.audience,
+      issuer: process.env.issuer
+    });
   }
 
   static async sendResetPasswordLink(username: string, email: string) {

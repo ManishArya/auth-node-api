@@ -1,11 +1,11 @@
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
 import { STATUS_CODE_BAD_REQUEST, STATUS_CODE_NOT_FOUND, STATUS_CODE_SUCCESS } from '../constants/status-code.const';
 import UserDal from '../data-access/user.dal';
 import ApiDataResponse from '../models/api-data-response';
 import ApiResponse from '../models/api-response';
 import MailOptions from '../models/mail-options';
 import UserInfo from '../models/user-info';
+import JwtHelper from '../utils/jwt-helper';
 import sendEmail from '../utils/sendEmail';
 const SALT_ROUNDS = 10;
 
@@ -15,7 +15,7 @@ export default class AuthService {
     const user = await UserDal.getUser({ $or: [{ username }, { email }] });
     const isValid = await this.isValidPassword(password, user);
     if (isValid) {
-      const token = this.generateJwtToken(user);
+      const token = JwtHelper.generateToken(user.username);
       return new ApiDataResponse({ token });
     }
     return new ApiResponse(STATUS_CODE_BAD_REQUEST, 'Credential is wrong !!!');
@@ -26,15 +26,6 @@ export default class AuthService {
       return await bcrypt.compare(password, user.password);
     }
     return Promise.resolve(false);
-  }
-
-  private static generateJwtToken(user: any): string {
-    const key = process.env.jwt_secret_key as string;
-    return jwt.sign({ username: user.username }, key, {
-      expiresIn: '1d',
-      audience: process.env.audience,
-      issuer: process.env.issuer
-    });
   }
 
   static async sendResetPasswordLink(username: string, email: string) {

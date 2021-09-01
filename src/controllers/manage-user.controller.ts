@@ -10,8 +10,6 @@ const router = express.Router();
  * @openapi
  *  /manage/user/:
  *  post:
- *    security:
- *      - bearerAuth: []
  *    description: 'Add New User'
  *    tags: [Manage User API]
  *    requestBody:
@@ -37,7 +35,7 @@ const router = express.Router();
  *        $ref: '#/components/responses/500'
  */
 
-router.post('/', verifyJwtToken, upload().single('photo'), async (req, res) => {
+router.post('/', upload().single('photo'), async (req, res) => {
   try {
     const file = req.file;
     const { username, name, email, mobile, password } = req.body;

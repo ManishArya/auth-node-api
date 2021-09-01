@@ -1,5 +1,5 @@
 import { NextFunction, Request } from 'express';
-import jwt from 'jsonwebtoken';
+import JwtHelper from '../utils/jwt-helper';
 
 export default (req: Request, res: any, next: NextFunction) => {
   try {
@@ -7,8 +7,7 @@ export default (req: Request, res: any, next: NextFunction) => {
     const type = 'Bearer ';
     if (authorization.startsWith(type)) {
       const token = authorization.split(type)[1];
-      const secretKey = process.env.jwt_secret_key as jwt.Secret;
-      const decodeToken = jwt.verify(token, secretKey, { complete: true }) as jwt.Jwt;
+      const decodeToken = JwtHelper.verifyToken(token);
       (req as any).currentUser = decodeToken.payload;
       return next();
     }

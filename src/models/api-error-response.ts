@@ -25,6 +25,9 @@ export default class ApiErrorResponse extends ApiResponse {
       keys.forEach((key) => {
         this.errorMessages.push(errors[key].message);
       });
+    } else if (error?.name === 'MongoError' && error?.code === 11000) {
+      const keyValue = error.keyValue;
+      this.errorMessage = `${Object.keys(keyValue)[0]} is alreay present`;
     } else {
       this.errorMessage = 'There is an issue in processing of request. Please try after some time later !!!';
     }

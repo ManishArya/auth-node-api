@@ -1,30 +1,64 @@
+import bcrypt from 'bcrypt';
 import mongoose from 'mongoose';
 import UserProfile from './user-profile';
 
 const userSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true, maxLength: 50, trim: true, match: /^[A-Za-z\s]*$/ },
+    name: {
+      type: String,
+      required: [true, 'name is required'],
+      maxLength: [50, 'name cannot exceed 50 characters'],
+      trim: true,
+      validate: {
+        validator: function (v: string) {
+          return /^[A-Za-z\s]*$/.test(v);
+        },
+        message: 'alphabets and spaces are allowed only !!!'
+      }
+    },
     email: {
       type: String,
-      required: true,
+      required: [true, 'email is required'],
       unique: true,
       lowercase: true,
       trim: true,
-      match: /^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$/
+      validate: {
+        validator: function (v: string) {
+          return /^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$/.test(v);
+        },
+        message: 'Enter valid mobile number'
+      }
     },
-    mobile: { type: String, unique: true, match: /^(0|91)?[7-9]\d{9}$/ },
+    mobile: {
+      type: String,
+      unique: true,
+      validate: {
+        validator: function (v: string) {
+          return /^(0|91)?[7-9]\d{9}$/.test(v);
+        },
+        message: 'Enter valid mobile number'
+      }
+    },
     photo: { type: Buffer },
     username: {
       type: String,
-      required: true,
+      required: [true, 'username is required'],
       immutable: true,
       unique: true,
       lowercase: true,
-      minLength: 4,
-      MaxLength: 10,
+      minLength: [4, 'username should be in between 4 to 10 charcters'],
+      MaxLength: [10, 'username should be in between 4 to 10 charcters'],
       trim: true
     },
-    password: { type: String },
+    password: {
+      type: String,
+      validate: {
+        validator: function (v: string) {
+          return /^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*-+]).{6,15}$/.test(v);
+        },
+        message: 'password is invalid'
+      }
+    },
     createdBy: { type: String, default: 'admin' },
     lastUpdatedBy: { type: String, default: 'admin' }
   },
@@ -37,5 +71,13 @@ const userSchema = new mongoose.Schema(
     }
   }
 );
+
+userSchema.pre('save', async function (next) {
+  const self = this as any;
+  const password = self.password;
+  self.createdBy = self.username?.toLowerCase();
+  self.password = await bcrypt.hash(password, 10);
+  next();
+});
 
 export default mongoose.model('user', userSchema);

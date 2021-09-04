@@ -109,11 +109,12 @@ router.post('/forgetPassword', async (req, res) => {
 router.post('/changePassword', verifyJwtToken, async (req, res) => {
   try {
     AuthService.currentUser = (req as any).currentUser;
-    const { password, confirmPassword } = req.body;
-    return res.json(await AuthService.changePassword(password, confirmPassword));
+    const { password, confirmPassword, oldPassword } = req.body;
+    const result = await AuthService.changePassword(password, confirmPassword, oldPassword);
+    return res.status(result.code).json(result);
   } catch (error) {
     logger.error(error, error);
-    return res.status(500).json(new ApiErrorResponse());
+    return res.status(500).json(new ApiErrorResponse(error));
   }
 });
 

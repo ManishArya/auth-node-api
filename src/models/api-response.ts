@@ -19,7 +19,7 @@ import { STATUS_CODE_SUCCESS } from '../constants/status-code.const';
  *            propertyName: code
  */
 export default class ApiResponse {
-  private code: number;
+  public code: number;
   private message: string | undefined;
   constructor(code = STATUS_CODE_SUCCESS, message?: string) {
     this.code = code;

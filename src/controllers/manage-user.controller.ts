@@ -94,13 +94,13 @@ router.get('/all', verifyJwtToken, async (req, res) => {
  *        $ref: '#/components/responses/500'
  */
 
-router.delete('/:username', verifyJwtToken, async (req, res) => {
+router.delete('/:username?', verifyJwtToken, async (req, res) => {
   try {
-    const username = req.params.username;
-    return res.json(ManageUserService.deleteUser(username));
+    const username = req.params.username ?? (req as any).currentUser.username;
+    return res.json(await ManageUserService.deleteUser(username));
   } catch (error) {
     logger.error(error, error);
-    return res.status(500).json(new ApiErrorResponse());
+    return res.status(500).json(new ApiErrorResponse(error));
   }
 });
 

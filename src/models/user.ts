@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema(
         validator: function (v: string) {
           return /^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$/.test(v);
         },
-        message: 'Enter valid mobile number'
+        message: 'Enter valid email'
       }
     },
     mobile: {
@@ -52,11 +52,13 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
+      required: [true, 'password is required'],
       validate: {
         validator: function (v: string) {
           return /^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*-+]).{6,15}$/.test(v);
         },
-        message: 'password is invalid'
+        message:
+          'Password should have at least 1 digit 1 upper case 1 lower case and 1 special characters and length should between 6 to 15'
       }
     },
     createdBy: { type: String, default: 'admin' },
@@ -74,9 +76,12 @@ const userSchema = new mongoose.Schema(
 
 userSchema.pre('save', async function (next) {
   const self = this as any;
-  const password = self.password;
   self.createdBy = self.username?.toLowerCase();
-  self.password = await bcrypt.hash(password, 10);
+  self.lastUpdatedBy = self.createdBy;
+  if (self.isModified('password')) {
+    const password = self.password;
+    self.password = await bcrypt.hash(password, 10);
+  }
   next();
 });
 

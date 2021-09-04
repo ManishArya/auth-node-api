@@ -1,9 +1,11 @@
 import express from 'express';
-import logger from '../utils/logger';
-import upload from '../utils/image-uploader';
-import UserService from '../services/user.service';
-import ApiErrorResponse from '../models/api-error-response';
+import { STATUS_CODE_BAD_REQUEST } from '../constants/status-code.const';
 import verifyJwtToken from '../middlewares/verify-jwt-token';
+import ApiErrorResponse from '../models/api-error-response';
+import ApiResponse from '../models/api-response';
+import UserService from '../services/user.service';
+import upload from '../utils/image-uploader';
+import logger from '../utils/logger';
 const router = express.Router();
 
 /**
@@ -16,14 +18,9 @@ const router = express.Router();
  *    tags: [User API]
  *    requestBody:
  *      content:
- *        multipart/form-data:
+ *        application/json:
  *          schema:
- *            properties:
- *              photo:
- *                type: string
- *                format: binary
- *            allOf:
- *            - $ref: '#/components/schemas/UserProfile'
+ *            $ref: '#/components/schemas/UpdateModel'
  *    responses:
  *      200:
  *        description: User Profile Updated
@@ -31,12 +28,35 @@ const router = express.Router();
  *        $ref: '#/components/responses/500'
  */
 
-router.put('/', verifyJwtToken, upload().single('photo'), async (req: any, res) => {
+router.put('/', verifyJwtToken, async (req: any, res) => {
   try {
     UserService.currentUser = req.currentUser;
     const { username, name, email, mobile } = req.body;
-    const file = req.file;
-    res.json(await UserService.editProfile({ username, name, email, mobile, photo: file?.buffer }));
+    return res.json(await UserService.editProfile({ username, name, email, mobile }));
+  } catch (error) {
+    logger.error(error, error);
+    return res.status(500).json(new ApiErrorResponse(error));
+  }
+});
+
+router.put('/uploadPhoto', verifyJwtToken, upload().single('photo'), async (req: any, res) => {
+  UserService.currentUser = req.currentUser;
+  const photo = req.file?.buffer;
+  if (!photo) {
+    return res.status(400).json(new ApiResponse(STATUS_CODE_BAD_REQUEST, 'No photo'));
+  }
+  try {
+    return res.json(await UserService.updatePhoto(photo));
+  } catch (error) {
+    logger.error(error, error);
+    return res.status(500).json(new ApiErrorResponse(error));
+  }
+});
+
+router.delete('/removePhoto', verifyJwtToken, async (req: any, res) => {
+  UserService.currentUser = req.currentUser;
+  try {
+    return res.json(await UserService.removePhoto());
   } catch (error) {
     logger.error(error, error);
     return res.status(500).json(new ApiErrorResponse(error));

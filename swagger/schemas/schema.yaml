@@ -19,6 +19,8 @@ components:
     Password:
       type: object
       properties:
+        oldPassword:
+          type: string
         password:
           type: string
         confirmPassword:
@@ -26,6 +28,18 @@ components:
       required:
         - password
         - confirmPassword
+    UpdateModel:
+      type: object
+      properties:
+        username:
+          type: string
+          readonly: true
+        name:
+          type: string
+        email:
+          type: string
+        mobile:
+          type: string
     ApiCollectionResponse:
       type: object
       properties:

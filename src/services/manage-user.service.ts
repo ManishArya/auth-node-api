@@ -10,11 +10,11 @@ export default class ManageUserService {
   static async saveUser(userData: any) {
     const user = await UserDal.saveUser(userData);
     const token = JwtHelper.generateToken(user.username);
-    const mailOptions = new MailOptions({
-      subject: `Your, ${user.name}, account has created successfully `,
-      email: user.email
-    });
     try {
+      const mailOptions = new MailOptions({
+        subject: `Your, ${user.name}, account has created successfully `,
+        email: user.email
+      });
       await sendEmail(mailOptions);
     } catch {}
     return new ApiDataResponse({ token });

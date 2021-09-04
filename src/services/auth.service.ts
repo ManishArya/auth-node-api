@@ -7,7 +7,6 @@ import MailOptions from '../models/mail-options';
 import UserInfo from '../models/user-info';
 import JwtHelper from '../utils/jwt-helper';
 import sendEmail from '../utils/sendEmail';
-const SALT_ROUNDS = 10;
 
 export default class AuthService {
   public static currentUser: UserInfo;
@@ -42,24 +41,31 @@ export default class AuthService {
     return new ApiResponse(STATUS_CODE_NOT_FOUND, 'User does not exists !!!');
   }
 
-  static async changePassword(password: string, confirmPassword: string) {
-    if (password.localeCompare(confirmPassword) !== 0) {
+  static async changePassword(password: string, confirmPassword: string, oldPassword: string) {
+    if (password?.localeCompare(confirmPassword) !== 0) {
       return new ApiResponse(STATUS_CODE_BAD_REQUEST, 'password and confirm password does not match !!!');
     }
-    if (/^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*-+]).{6,15}$/.test(password)) {
-      const hash = await bcrypt.hash(password, SALT_ROUNDS);
-      const user = await UserDal.updateUser({ username: '' }, { password: hash });
-      const mailOptions = new MailOptions({
-        subject: `Your, ${user.name}, Password has changed successfully`,
-        to: user.email,
-        text: ''
-      });
-      await sendEmail(mailOptions);
+    const { username } = this.currentUser;
+    const user = await UserDal.getUser({ username });
+    if (!user) {
+      return new ApiResponse(STATUS_CODE_NOT_FOUND, 'User not found');
+    }
+
+    const isValidOldPassword = await this.isValidPassword(oldPassword, user);
+
+    if (isValidOldPassword) {
+      user.password = password;
+      await user.save();
+      try {
+        const mailOptions = new MailOptions({
+          subject: `Your, ${user.name}, Password has changed successfully`,
+          to: user.email,
+          text: ''
+        });
+        await sendEmail(mailOptions);
+      } catch {}
       return new ApiResponse(STATUS_CODE_SUCCESS, 'Password Changed Successfully');
     }
-    return new ApiResponse(
-      STATUS_CODE_BAD_REQUEST,
-      'Password should have at least 1 digit 1 upper case 1 lower case and 1 special characters and length should between 6 to 15'
-    );
+    return new ApiResponse(STATUS_CODE_BAD_REQUEST, 'Old password is wrong');
   }
 }

@@ -2,49 +2,8 @@ import express from 'express';
 import verifyJwtToken from '../middlewares/verify-jwt-token';
 import ApiErrorResponse from '../models/api-error-response';
 import ManageUserService from '../services/manage-user.service';
-import upload from '../utils/image-uploader';
 import logger from '../utils/logger';
 const router = express.Router();
-
-/**
- * @openapi
- *  /manage/user/:
- *  post:
- *    description: 'Add New User'
- *    tags: [Manage User API]
- *    requestBody:
- *      content:
- *        multipart/form-data:
- *          schema:
- *            properties:
- *              photo:
- *                type: string
- *                format: binary
- *              password:
- *                type: string
- *            allOf:
- *            - $ref: '#/components/schemas/UserProfile'
- *    responses:
- *      200:
- *        description: Added New User Successfully
- *        content:
- *          application/json:
- *            schema:
- *              $ref: '#/components/schemas/UserProfile'
- *      500:
- *        $ref: '#/components/responses/500'
- */
-
-router.post('/', upload().single('photo'), async (req, res) => {
-  try {
-    const file = req.file;
-    const { username, name, email, mobile, password } = req.body;
-    return res.json(await ManageUserService.saveUser({ username, name, email, mobile, password, photo: file?.buffer }));
-  } catch (error) {
-    logger.error(error, error);
-    return res.status(500).json(new ApiErrorResponse(error));
-  }
-});
 
 /**
  * @openapi

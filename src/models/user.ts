@@ -61,6 +61,7 @@ const userSchema = new mongoose.Schema(
           'Password should have at least 1 digit 1 upper case 1 lower case and 1 special characters and length should between 6 to 15'
       }
     },
+    isAdmin: { type: Boolean, default: false },
     createdBy: { type: String, default: 'admin' },
     lastUpdatedBy: { type: String, default: 'admin' }
   },

@@ -2,42 +2,46 @@ import { STATUS_CODE_NOT_FOUND } from '../constants/status-code.const';
 import UserDal from '../data-access/user.dal';
 import ApiDataResponse from '../models/api-data-response';
 import ApiResponse from '../models/api-response';
+import JwtHelper from '../utils/jwt-helper';
+import { Mail } from '../utils/mail';
 
 export default class UserService {
-  static currentUser: any;
-  static async editProfile(userData: any) {
-    const { username } = this.currentUser;
-    userData.lastUpdatedBy = username?.toLowerCase();
-    const user = await UserDal.updateUser({ username }, userData);
-    if (user) {
-      return new ApiDataResponse(user.toObject());
-    }
-    return new ApiResponse(STATUS_CODE_NOT_FOUND, 'No User found');
+  public static currentUser: any;
+
+  public static async saveUser(userData: any) {
+    const user = await UserDal.saveUser(userData);
+    const token = JwtHelper.generateToken(user.username);
+    const mail = new Mail({
+      subject: `Your, ${user.name}, account has created successfully `,
+      to: user.email
+    });
+    await mail.send();
+    return new ApiDataResponse({ token });
   }
 
-  static async updatePhoto(photo: Buffer) {
-    const { username } = this.currentUser;
-    const user = await UserDal.updateUser({ username }, { photo, lastUpdatedBy: username?.toLowerCase() });
-
-    if (user) {
-      return new ApiDataResponse(user.toObject());
-    }
-    return new ApiResponse(STATUS_CODE_NOT_FOUND, 'No User found');
+  public static async editProfile(userData: any) {
+    return await this.updateUser(userData);
   }
 
-  static async removePhoto() {
-    const { username } = this.currentUser;
-    const user = await UserDal.updateUser({ username }, { photo: undefined, lastUpdatedBy: username?.toLowerCase() });
-
-    if (user) {
-      return new ApiDataResponse(user.toObject());
-    }
-    return new ApiResponse(STATUS_CODE_NOT_FOUND, 'No User found');
+  public static async updatePhoto(photo?: Buffer) {
+    return await this.updateUser({ photo });
   }
 
-  static async getProfile() {
+  public static async getProfile() {
     const username = this.currentUser.username;
     const user = await UserDal.getUserByUsername(username);
     return new ApiDataResponse(user.toObject());
+  }
+
+  private static async updateUser(data: any) {
+    const { username } = this.currentUser;
+    data.lastUpdatedBy = username?.toLowerCase();
+
+    const user = await UserDal.updateUser({ username }, data);
+
+    if (user) {
+      return new ApiDataResponse(user.toObject());
+    }
+    return new ApiResponse(STATUS_CODE_NOT_FOUND, 'No User found');
   }
 }

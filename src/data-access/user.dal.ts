@@ -2,7 +2,7 @@ import User from '../models/user';
 
 export default class UserDal {
   static async getUserByUsername(username: any) {
-    return await User.findOne({ username });
+    return await this.getUser({ username });
   }
 
   static async getUser(filterQuery: any) {

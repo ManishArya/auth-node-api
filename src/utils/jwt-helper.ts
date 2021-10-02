@@ -7,7 +7,8 @@ export default class JwtHelper {
     return jwt.sign({ username }, this._secretKey, {
       expiresIn: '1d',
       audience: process.env.audience,
-      issuer: process.env.issuer
+      issuer: process.env.issuer,
+      subject: username
     });
   }
 

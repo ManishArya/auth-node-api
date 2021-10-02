@@ -63,4 +63,15 @@ router.delete('/:username?', verifyJwtToken, async (req, res) => {
   }
 });
 
+router.post('/deleteUserAccount', verifyJwtToken, async (req, res) => {
+  try {
+    const password = req.body.password;
+    const username = (req as any).currentUser.username;
+    return res.json(await ManageUserService.deleteUserAccount(password, username));
+  } catch (error) {
+    logger.error(error);
+    return res.status(500).json(new ApiErrorResponse(error));
+  }
+});
+
 export default router;

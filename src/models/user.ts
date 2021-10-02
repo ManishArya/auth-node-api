@@ -34,6 +34,9 @@ const userSchema = new mongoose.Schema(
       unique: true,
       validate: {
         validator: function (v: string) {
+          if (v === 'undefined' || v === null || v.trim() === '') {
+            return true;
+          }
           return /^(0|91)?[7-9]\d{9}$/.test(v);
         },
         message: 'Enter valid mobile number'

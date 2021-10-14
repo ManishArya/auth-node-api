@@ -11,6 +11,9 @@ const userSchema = new mongoose.Schema(
       trim: true,
       validate: {
         validator: function (v: string) {
+          if (v === 'null' || v === 'undefined') {
+            return false;
+          }
           return /^[A-Za-z\s]*$/.test(v);
         },
         message: 'alphabets and spaces are allowed only !!!'
@@ -34,7 +37,7 @@ const userSchema = new mongoose.Schema(
       unique: true,
       validate: {
         validator: function (v: string) {
-          if (v === 'undefined' || v === null || v.trim() === '') {
+          if (v === 'undefined' || v === 'null' || v.trim() === '') {
             return true;
           }
           return /^(0|91)?[7-9]\d{9}$/.test(v);

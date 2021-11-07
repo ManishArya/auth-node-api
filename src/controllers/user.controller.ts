@@ -41,7 +41,10 @@ router.post('/', upload().single('photo'), async (req, res) => {
   try {
     const file = req.file;
     const { username, name, email, mobile, password } = req.body;
-    return res.json(await UserService.saveUser({ username, name, email, mobile, password, photo: file?.buffer }));
+    logger.info(`User.Newuser beginning ${req.path}`);
+    const result = await UserService.saveUser({ username, name, email, mobile, password, photo: file?.buffer });
+    logger.info(`User.NewUser returning`);
+    return res.json(result);
   } catch (error) {
     logger.error(error, error);
     return res.status(500).json(new ApiErrorResponse(error));
@@ -72,7 +75,10 @@ router.put('/', verifyJwtToken, async (req: any, res) => {
   try {
     UserService.currentUser = req.currentUser;
     const { username, name, email, mobile } = req.body;
-    return res.json(await UserService.editProfile({ username, name, email, mobile }));
+    logger.info(`User.Edit beginning ${req.path}`);
+    const result = await UserService.editProfile({ username, name, email, mobile });
+    logger.info(`User.Edit returning`);
+    return res.json(result);
   } catch (error) {
     logger.error(error, error);
     return res.status(500).json(new ApiErrorResponse(error));
@@ -86,7 +92,10 @@ router.put('/uploadPhoto', verifyJwtToken, upload().single('photo'), async (req:
     return res.status(400).json(new ApiResponse(STATUS_CODE_BAD_REQUEST, 'No photo'));
   }
   try {
-    return res.json(await UserService.updatePhoto(photo));
+    logger.info(`User.UploadPhoto beginning ${req.path}`);
+    const result = await UserService.updatePhoto(photo);
+    logger.info(`User.UploadPhoto returning`);
+    return res.json(result);
   } catch (error) {
     logger.error(error, error);
     return res.status(500).json(new ApiErrorResponse(error));
@@ -96,7 +105,10 @@ router.put('/uploadPhoto', verifyJwtToken, upload().single('photo'), async (req:
 router.delete('/removePhoto', verifyJwtToken, async (req: any, res) => {
   UserService.currentUser = req.currentUser;
   try {
-    return res.json(await UserService.updatePhoto());
+    logger.info(`User.RemovePhoto beginning ${req.path}`);
+    const result = await UserService.updatePhoto();
+    logger.info(`User.RemovePhoto returning`);
+    return res.json(result);
   } catch (error) {
     logger.error(error, error);
     return res.status(500).json(new ApiErrorResponse(error));
@@ -121,7 +133,10 @@ router.delete('/removePhoto', verifyJwtToken, async (req: any, res) => {
 router.get('/', verifyJwtToken, async (req: any, res: any) => {
   try {
     UserService.currentUser = req.currentUser;
-    return res.json(await UserService.getProfile());
+    logger.info(`User.GetProfile beginning ${req.path}`);
+    const profile = await UserService.getProfile();
+    logger.info(`User.GetProfile returning`);
+    return res.json(profile);
   } catch (error) {
     logger.error(error, error);
     return res.status(500).json(new ApiErrorResponse());

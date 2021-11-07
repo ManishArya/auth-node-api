@@ -27,7 +27,10 @@ const router = express.Router();
 
 router.get('/all', verifyJwtToken, async (req, res) => {
   try {
-    return res.json(await ManageUserService.getUsers());
+    logger.info(`${router.name}.All beginning ${req.path}`);
+    const users = await ManageUserService.getUsers();
+    logger.info(`ManageUser.All returning`);
+    return res.json(users);
   } catch (error) {
     logger.error(error, error);
     return res.status(500).json(new ApiErrorResponse());
@@ -56,7 +59,10 @@ router.get('/all', verifyJwtToken, async (req, res) => {
 router.delete('/:username?', verifyJwtToken, async (req, res) => {
   try {
     const username = req.params.username ?? (req as any).currentUser.username;
-    return res.json(await ManageUserService.deleteUser(username));
+    logger.info(`ManageUser.Delete beginning ${req.path} ${req.route}`);
+    const result = await ManageUserService.deleteUser(username);
+    logger.info(`ManageUser.Delete returning`);
+    return res.json(result);
   } catch (error) {
     logger.error(error, error);
     return res.status(500).json(new ApiErrorResponse(error));
@@ -67,7 +73,10 @@ router.post('/deleteUserAccount', verifyJwtToken, async (req, res) => {
   try {
     const password = req.body.password;
     const username = (req as any).currentUser.username;
-    return res.json(await ManageUserService.deleteUserAccount(password, username));
+    logger.info(`ManageUser.DeleteUserAccount beginning ${req.path}`);
+    const result = await ManageUserService.deleteUserAccount(password, username);
+    logger.info(`ManageUser.DeleteUserAccount returning`);
+    return res.json(result);
   } catch (error) {
     logger.error(error);
     return res.status(500).json(new ApiErrorResponse(error));

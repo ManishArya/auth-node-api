@@ -45,7 +45,10 @@ const router = express.Router();
 router.post('/token', async (req, res) => {
   try {
     const { username, email, password } = req.body;
-    return res.json(await AuthService.validateUser(username, email, password));
+    logger.info(`Auth.Token beginning ${req.path}`);
+    const result = await AuthService.validateUser(username, email, password);
+    logger.info(`Auth.Token returning`);
+    return res.json(result);
   } catch (error) {
     logger.error(error);
     res.status(500).json(new ApiErrorResponse());
@@ -79,7 +82,10 @@ router.post('/token', async (req, res) => {
 router.post('/forgetPassword', async (req, res) => {
   try {
     const { username, email } = req.body;
-    res.json(await AuthService.sendResetPasswordLink(username, email));
+    logger.info(`Auth.ForgetPassword beginning ${req.path}`);
+    const result = await AuthService.sendResetPasswordLink(username, email);
+    logger.info(`Auth.ForgetPassword returning`);
+    res.json(result);
   } catch (error) {
     logger.error(error, error);
     res.status(500).json(new ApiErrorResponse());
@@ -108,11 +114,11 @@ router.post('/forgetPassword', async (req, res) => {
 
 router.post('/changePassword', verifyJwtToken, async (req, res) => {
   try {
-    logger.info(`Method call changePassword`);
+    logger.info(`Auth.ChangePassword beginning ${req.path}`);
     AuthService.currentUser = (req as any).currentUser;
     const { password, confirmPassword, oldPassword } = req.body;
     const result = await AuthService.changePassword(password, confirmPassword, oldPassword);
-    logger.info(`Method returing changePassword`);
+    logger.info(`Auth.ChangePassword returning`);
     return res.status(result.code).json(result);
   } catch (error) {
     logger.error(error, error);

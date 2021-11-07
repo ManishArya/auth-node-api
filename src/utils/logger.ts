@@ -1,3 +1,4 @@
+import os from 'os';
 import winston from 'winston';
 
 const loggerOption: winston.LoggerOptions = {
@@ -12,9 +13,11 @@ const loggerOption: winston.LoggerOptions = {
       : new winston.transports.Console()
   ],
   format: winston.format.combine(
-    winston.format.timestamp({ format: 'MMM-DD-YYYY HH:mm:ss' }),
+    winston.format.timestamp({ format: 'YYYY-MM-DDTHH:mm:ss.SSSSSSSZ' }),
     winston.format.align(),
-    winston.format.printf((info: any) => `${info.level}: ${[info.timestamp]}: ${info.message}`)
+    winston.format.printf(
+      (info: any) => `${info.timestamp} ${os.hostname} AuthService [${info.level.toUpperCase()}]${info.message}`
+    )
   ),
   levels: winston.config.npm.levels
 };

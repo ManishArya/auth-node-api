@@ -48,7 +48,7 @@ router.post('/token', async (req, res) => {
     logger.info(`Auth.Token beginning ${req.path}`);
     const result = await AuthService.validateUser(username, email, password);
     logger.info(`Auth.Token returning`);
-    return res.json(result);
+    return res.status(result.code).json(result);
   } catch (error) {
     logger.error(error);
     res.status(500).json(new ApiErrorResponse());

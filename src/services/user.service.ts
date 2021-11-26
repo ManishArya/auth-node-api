@@ -10,7 +10,7 @@ export default class UserService {
 
   public static async saveUser(userData: any) {
     const user = await UserDal.saveUser(userData);
-    const token = JwtHelper.generateToken(user.username);
+    const token = JwtHelper.generateToken(user.username, user.isAdmin);
     const mail = new Mail({
       subject: `Your, ${user.name}, account has created successfully `,
       to: user.email

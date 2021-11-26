@@ -58,7 +58,7 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, 'password is required'],
+      required: [true, 'password is required  '],
       validate: {
         validator: function (v: string) {
           return /^(?=.*\d)(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^&*-+]).{6,15}$/.test(v);
@@ -68,6 +68,9 @@ const userSchema = new mongoose.Schema(
       }
     },
     isAdmin: { type: Boolean, default: false },
+    hasLocked: { type: Boolean, default: false },
+    failureAttempt: { type: Number, default: 0 },
+    lockedAt: { type: Date },
     createdBy: { type: String, default: 'admin' },
     lastUpdatedBy: { type: String, default: 'admin' }
   },

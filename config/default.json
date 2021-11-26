@@ -7,5 +7,7 @@
   "images": {
     "uploadPath": "uploads/images",
     "size": "1000000"
-  }
+  },
+  "loginAttemptBeforeLockedOut": 4,
+  "lockedTimeout": 600000
 }

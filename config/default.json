@@ -9,5 +9,5 @@
     "size": "1000000"
   },
   "loginAttemptBeforeLockedOut": 4,
-  "lockedTimeout": 600000
+  "lockedPeriod": 600000
 }

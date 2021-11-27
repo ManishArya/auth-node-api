@@ -1,5 +1,6 @@
 import bcrypt from 'bcrypt';
 import config from 'config';
+import moment from 'moment';
 import { STATUS_CODE_BAD_REQUEST, STATUS_CODE_NOT_FOUND, STATUS_CODE_SUCCESS } from '../constants/status-code.const';
 import UserDal from '../data-access/user.dal';
 import ApiDataResponse from '../models/api-data-response';
@@ -79,14 +80,23 @@ export default class AuthService {
   }
 
   private static isUserLocked(user: any): boolean {
+    const lockedAt = user.lockedAt as Date;
+    const lockedAtInLocal = moment.utc(lockedAt).local();
+    const lockedPeriod = this.lockedPeriod;
+    const lockedTimeout = lockedAtInLocal.add(lockedPeriod, 'milliseconds');
+    const isLockedTimeoutAfterCurrentTime = lockedTimeout.isAfter(moment());
     const failureAttempt = user.failureAttempt;
     const loginAttemptBeforeLocked = config.get('loginAttemptBeforeLockedOut') as number;
-    const lockedAt = user.lockedAt;
-    const lockedTimeout = config.get('lockedTimeout');
-    if (failureAttempt < loginAttemptBeforeLocked) {
-      return false;
+    const isAttemptPass = failureAttempt >= loginAttemptBeforeLocked;
+    return isAttemptPass && isLockedTimeoutAfterCurrentTime;
+  }
+
+  private static get lockedPeriod(): number {
+    const period = config.get('lockedPeriod') as number;
+    if (period <= 0) {
+      return 600000;
     }
-    return true;
+    return period;
   }
 
   public static async updateUserLockedInformation(user: any, isPasswordValid: boolean) {

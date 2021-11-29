@@ -1,6 +1,9 @@
 import express from 'express';
+import { STATUS_CODE_SUCCESS } from '../constants/status-code.const';
 import verifyJwtToken from '../middlewares/verify-jwt-token';
 import ApiErrorResponse from '../models/api-error-response';
+import ApiResponse from '../models/api-response';
+import AuthService from '../services/auth.service';
 import ManageUserService from '../services/manage-user.service';
 import logger from '../utils/logger';
 const router = express.Router();
@@ -74,7 +77,15 @@ router.post('/deleteUserAccount', verifyJwtToken, async (req, res) => {
     const password = req.body.password;
     const username = (req as any).currentUser.username;
     logger.info(`ManageUser.DeleteUserAccount beginning ${req.path}`);
-    const result = await ManageUserService.deleteUserAccount(password, username);
+
+    let result: ApiResponse;
+    const filter = { username };
+    result = await AuthService.validateUser(filter, password, 'Password is wrong !!!');
+
+    if (result.code === STATUS_CODE_SUCCESS) {
+      result = await ManageUserService.deleteUser(username);
+    }
+
     logger.info(`ManageUser.DeleteUserAccount returning`);
     return res.json(result);
   } catch (error) {

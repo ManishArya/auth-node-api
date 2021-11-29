@@ -1,6 +1,4 @@
 import bcrypt from 'bcrypt';
-import config from 'config';
-import moment from 'moment';
 import { STATUS_CODE_BAD_REQUEST, STATUS_CODE_NOT_FOUND, STATUS_CODE_SUCCESS } from '../constants/status-code.const';
 import UserDal from '../data-access/user.dal';
 import ApiDataResponse from '../models/api-data-response';
@@ -12,24 +10,35 @@ import { Mail } from '../utils/mail';
 export default class AuthService {
   public static currentUser: UserInfo;
 
-  public static async validateUser(username: string, email: string, password: string) {
-    const user = await UserDal.getUser({ $or: [{ username }, { email }] });
-    if (user) {
-      const isUserLocked = this.isUserLocked(user);
+  public static async validateUser(
+    filter: any,
+    password: string,
+    errorMessage = 'Credential is wrong !!!'
+  ): Promise<ApiResponse> {
+    const user = await UserDal.getUser(filter);
 
-      if (isUserLocked) {
-        return new ApiResponse(STATUS_CODE_BAD_REQUEST, 'User is locked. Please try after some time later');
-      }
-
-      const isValid = await this.isValidPassword(password, user.password);
-      await this.updateUserLockedInformation(user, isValid);
-
-      if (isValid) {
-        const token = JwtHelper.generateToken(user.username, user.isAdmin);
-        return new ApiDataResponse({ token });
-      }
+    if (!user) {
+      return new ApiResponse(STATUS_CODE_NOT_FOUND, 'User not found');
     }
-    return new ApiResponse(STATUS_CODE_BAD_REQUEST, 'Credential is wrong !!!');
+
+    if (user.isUserLocked) {
+      return new ApiResponse(STATUS_CODE_BAD_REQUEST, 'User is locked. Please try after some time later');
+    }
+
+    const isPasswordValid = await this.isValidPassword(password, user.password);
+
+    await this.updateUserLockedInformation(user, isPasswordValid);
+
+    if (isPasswordValid) {
+      return new ApiDataResponse(user);
+    }
+
+    return new ApiResponse(STATUS_CODE_BAD_REQUEST, errorMessage);
+  }
+
+  public static async generateToken(user: any) {
+    const token = JwtHelper.generateToken(user.username, user.isAdmin);
+    return new ApiDataResponse({ token });
   }
 
   public static async sendResetPasswordLink(username: string, email: string) {
@@ -46,30 +55,16 @@ export default class AuthService {
     return new ApiResponse(STATUS_CODE_NOT_FOUND, 'User does not exists !!!');
   }
 
-  public static async changePassword(password: string, confirmPassword: string, oldPassword: string) {
-    if (password?.localeCompare(confirmPassword) !== 0) {
-      return new ApiResponse(STATUS_CODE_BAD_REQUEST, 'password and confirm password does not match !!!');
-    }
-    const { username } = this.currentUser;
-    const user = await UserDal.getUser({ username });
-    if (!user) {
-      return new ApiResponse(STATUS_CODE_NOT_FOUND, 'User not found');
-    }
-
-    const isValidOldPassword = await this.isValidPassword(oldPassword, user.password);
-
-    if (isValidOldPassword) {
-      user.password = password;
-      await user.save();
-      const mail = new Mail({
-        subject: `Your, ${user.name}, Password has changed successfully`,
-        to: user.email,
-        text: ''
-      });
-      await mail.send();
-      return new ApiResponse(STATUS_CODE_SUCCESS, 'Password Changed Successfully');
-    }
-    return new ApiResponse(STATUS_CODE_BAD_REQUEST, 'Old password is wrong');
+  public static async changePassword(user: any, password: string) {
+    user.password = password;
+    await user.save();
+    const mail = new Mail({
+      subject: `Your, ${user.name}, Password has changed successfully`,
+      to: user.email,
+      text: ''
+    });
+    await mail.send();
+    return new ApiResponse(STATUS_CODE_SUCCESS, 'Password Changed Successfully');
   }
 
   private static async isValidPassword(password: string, dbPassword: string): Promise<boolean> {
@@ -79,27 +74,7 @@ export default class AuthService {
     return Promise.resolve(false);
   }
 
-  private static isUserLocked(user: any): boolean {
-    const lockedAt = user.lockedAt as Date;
-    const lockedAtInLocal = moment.utc(lockedAt).local();
-    const lockedPeriod = this.lockedPeriod;
-    const lockedTimeout = lockedAtInLocal.add(lockedPeriod, 'milliseconds');
-    const isLockedTimeoutAfterCurrentTime = lockedTimeout.isAfter(moment());
-    const failureAttempt = user.failureAttempt;
-    const loginAttemptBeforeLocked = config.get('loginAttemptBeforeLockedOut') as number;
-    const isAttemptPass = failureAttempt >= loginAttemptBeforeLocked;
-    return isAttemptPass && isLockedTimeoutAfterCurrentTime;
-  }
-
-  private static get lockedPeriod(): number {
-    const period = config.get('lockedPeriod') as number;
-    if (period <= 0) {
-      return 600000;
-    }
-    return period;
-  }
-
-  public static async updateUserLockedInformation(user: any, isPasswordValid: boolean) {
+  private static async updateUserLockedInformation(user: any, isPasswordValid: boolean) {
     let count = user.failureAttempt;
     user.failureAttempt = isPasswordValid ? 0 : count + 1;
     user.lockedAt = isPasswordValid ? null : new Date();

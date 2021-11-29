@@ -1,6 +1,9 @@
 import express from 'express';
+import { STATUS_CODE_BAD_REQUEST, STATUS_CODE_SUCCESS } from '../constants/status-code.const';
 import verifyJwtToken from '../middlewares/verify-jwt-token';
+import ApiDataResponse from '../models/api-data-response';
 import ApiErrorResponse from '../models/api-error-response';
+import ApiResponse from '../models/api-response';
 import AuthService from '../services/auth.service';
 import logger from '../utils/logger';
 const router = express.Router();
@@ -46,7 +49,15 @@ router.post('/token', async (req, res) => {
   try {
     const { username, email, password } = req.body;
     logger.info(`Auth.Token beginning ${req.path}`);
-    const result = await AuthService.validateUser(username, email, password);
+    let result: ApiResponse;
+    const filter = { $or: [{ username }, { email }] };
+    result = await AuthService.validateUser(filter, password);
+
+    if (result.code === STATUS_CODE_SUCCESS) {
+      const user = (result as ApiDataResponse<any>).data;
+      result = await AuthService.generateToken(user);
+    }
+
     logger.info(`Auth.Token returning`);
     return res.status(result.code).json(result);
   } catch (error) {
@@ -115,9 +126,24 @@ router.post('/forgetPassword', async (req, res) => {
 router.post('/changePassword', verifyJwtToken, async (req, res) => {
   try {
     logger.info(`Auth.ChangePassword beginning ${req.path}`);
-    AuthService.currentUser = (req as any).currentUser;
+    const currentUser = (req as any).currentUser;
     const { password, confirmPassword, oldPassword } = req.body;
-    const result = await AuthService.changePassword(password, confirmPassword, oldPassword);
+
+    if (password?.localeCompare(confirmPassword) !== 0) {
+      return res
+        .status(400)
+        .json(new ApiResponse(STATUS_CODE_BAD_REQUEST, 'password and confirm password does not match !!!'));
+    }
+
+    let result: ApiResponse;
+    const filter = { username: currentUser.username };
+    result = await AuthService.validateUser(filter, oldPassword, 'Old password is wrong !!!');
+
+    if (result.code === STATUS_CODE_SUCCESS) {
+      const user = (result as ApiDataResponse<any>).data;
+      result = await AuthService.changePassword(user, password);
+    }
+
     logger.info(`Auth.ChangePassword returning`);
     return res.status(result.code).json(result);
   } catch (error) {

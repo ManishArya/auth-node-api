@@ -1,4 +1,6 @@
 import bcrypt from 'bcrypt';
+import config from 'config';
+import moment from 'moment';
 import mongoose from 'mongoose';
 import UserProfile from './user-profile';
 
@@ -83,6 +85,26 @@ const userSchema = new mongoose.Schema(
     }
   }
 );
+
+userSchema.virtual('isUserLocked').get(function (this: any) {
+  const lockedAt = this.lockedAt as Date;
+  const lockedAtInLocal = moment.utc(lockedAt).local();
+  const lockedPeriod = getLockedPeriod();
+  const lockedTimeout = lockedAtInLocal.add(lockedPeriod, 'milliseconds');
+  const isLockedTimeoutAfterCurrentTime = lockedTimeout.isAfter(moment());
+  const failureAttempt = this.failureAttempt;
+  const loginAttemptBeforeLocked = config.get('loginAttemptBeforeLockedOut') as number;
+  const isAttemptPass = failureAttempt >= loginAttemptBeforeLocked;
+  return isAttemptPass && isLockedTimeoutAfterCurrentTime;
+});
+
+function getLockedPeriod() {
+  const period = config.get('lockedPeriod') as number;
+  if (period <= 0) {
+    return 600000;
+  }
+  return period;
+}
 
 userSchema.pre('save', async function (next) {
   const self = this as any;

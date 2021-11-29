@@ -16,7 +16,7 @@ import ApiResponse from './api-response';
  *            propertyName: code
  */
 export default class ApiDataResponse<T> extends ApiResponse {
-  private data: T;
+  public data: T;
   constructor(data: T) {
     super();
     this.data = data;

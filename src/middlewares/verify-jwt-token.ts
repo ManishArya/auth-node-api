@@ -15,7 +15,7 @@ export default (req: Request, res: any, next: NextFunction) => {
     }
     throw new Error();
   } catch (err) {
-    logger.info(`User is not authenticate`);
+    logger.error(err, err);
     return res.status(401).json('user is unauthorized');
   }
 };

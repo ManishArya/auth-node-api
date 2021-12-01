@@ -3,7 +3,7 @@ components:
     Login:
       type: object
       properties:
-        username:
+        usernameOrEmail:
           type: string
         password:
           type: string

@@ -47,10 +47,10 @@ const router = express.Router();
 
 router.post('/token', async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { usernameOrEmail, password } = req.body;
     logger.info(`Auth.Token beginning ${req.path}`);
     let result: ApiResponse;
-    const filter = { $or: [{ username }, { email }] };
+    const filter = { $or: [{ username: usernameOrEmail }, { email: usernameOrEmail }] };
     result = await AuthService.validateUser(filter, password);
 
     if (result.code === STATUS_CODE_SUCCESS) {

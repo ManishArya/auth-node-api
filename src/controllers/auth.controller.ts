@@ -1,5 +1,6 @@
 import express from 'express';
 import { STATUS_CODE_BAD_REQUEST, STATUS_CODE_SUCCESS } from '../constants/status-code.const';
+import recaptchVerify from '../middlewares/recaptch-verify';
 import verifyJwtToken from '../middlewares/verify-jwt-token';
 import ApiDataResponse from '../models/api-data-response';
 import ApiErrorResponse from '../models/api-error-response';
@@ -45,7 +46,7 @@ const router = express.Router();
  *        $ref: '#/components/responses/500'
  */
 
-router.post('/token', async (req, res) => {
+router.post('/token', recaptchVerify, async (req, res) => {
   try {
     const { usernameOrEmail, password } = req.body;
     logger.info(`Auth.Token beginning ${req.path}`);
@@ -90,7 +91,7 @@ router.post('/token', async (req, res) => {
  *        $ref: '#/components/responses/500'
  */
 
-router.post('/forgetPassword', async (req, res) => {
+router.post('/forgetPassword', recaptchVerify, async (req, res) => {
   try {
     const { username, email } = req.body;
     logger.info(`Auth.ForgetPassword beginning ${req.path}`);

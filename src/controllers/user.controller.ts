@@ -1,5 +1,6 @@
 import express from 'express';
 import { STATUS_CODE_BAD_REQUEST } from '../constants/status-code.const';
+import recaptchVerify from '../middlewares/recaptch-verify';
 import verifyJwtToken from '../middlewares/verify-jwt-token';
 import ApiErrorResponse from '../models/api-error-response';
 import ApiResponse from '../models/api-response';
@@ -37,7 +38,7 @@ const router = express.Router();
  *        $ref: '#/components/responses/500'
  */
 
-router.post('/', upload().single('photo'), async (req, res) => {
+router.post('/', recaptchVerify, upload().single('photo'), async (req, res) => {
   try {
     const file = req.file;
     const { username, name, email, mobile, password } = req.body;

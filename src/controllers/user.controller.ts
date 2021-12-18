@@ -2,11 +2,11 @@ import express from 'express';
 import { STATUS_CODE_BAD_REQUEST } from '../constants/status-code.const';
 import recaptchVerify from '../middlewares/recaptch-verify';
 import verifyJwtToken from '../middlewares/verify-jwt-token';
-import ApiErrorResponse from '../models/api-error-response';
 import ApiResponse from '../models/api-response';
 import UserService from '../services/user.service';
 import upload from '../utils/image-uploader';
 import logger from '../utils/logger';
+import BaseController from './base.controller';
 const router = express.Router();
 
 /**
@@ -45,10 +45,10 @@ router.post('/', recaptchVerify, upload().single('photo'), async (req, res) => {
     logger.info(`User.Newuser beginning ${req.path}`);
     const result = await UserService.saveUser({ username, name, email, mobile, password, photo: file?.buffer });
     logger.info(`User.NewUser returning`);
-    return res.json(result);
+    return BaseController.sendResponse(res, result);
   } catch (error) {
     logger.error(error, error);
-    return res.status(500).json(new ApiErrorResponse(error));
+    return BaseController.ToError(res, error);
   }
 });
 
@@ -79,10 +79,10 @@ router.put('/', verifyJwtToken, async (req: any, res) => {
     logger.info(`User.Edit beginning ${req.path}`);
     const result = await UserService.editProfile({ username, name, email, mobile });
     logger.info(`User.Edit returning`);
-    return res.json(result);
+    return BaseController.sendResponse(res, result);
   } catch (error) {
     logger.error(error, error);
-    return res.status(500).json(new ApiErrorResponse(error));
+    return BaseController.ToError(res, error);
   }
 });
 
@@ -90,16 +90,16 @@ router.put('/uploadPhoto', verifyJwtToken, upload().single('photo'), async (req:
   UserService.currentUser = req.currentUser;
   const photo = req.file?.buffer;
   if (!photo) {
-    return res.status(400).json(new ApiResponse(STATUS_CODE_BAD_REQUEST, 'No photo'));
+    return BaseController.sendResponse(res, new ApiResponse('No photo', STATUS_CODE_BAD_REQUEST));
   }
   try {
     logger.info(`User.UploadPhoto beginning ${req.path}`);
     const result = await UserService.updatePhoto(photo);
     logger.info(`User.UploadPhoto returning`);
-    return res.json(result);
+    return BaseController.sendResponse(res, result);
   } catch (error) {
     logger.error(error, error);
-    return res.status(500).json(new ApiErrorResponse(error));
+    return BaseController.ToError(res, error);
   }
 });
 
@@ -109,10 +109,10 @@ router.delete('/removePhoto', verifyJwtToken, async (req: any, res) => {
     logger.info(`User.RemovePhoto beginning ${req.path}`);
     const result = await UserService.updatePhoto();
     logger.info(`User.RemovePhoto returning`);
-    return res.json(result);
+    return BaseController.sendResponse(res, result);
   } catch (error) {
     logger.error(error, error);
-    return res.status(500).json(new ApiErrorResponse(error));
+    return BaseController.ToError(res, error);
   }
 });
 
@@ -137,10 +137,10 @@ router.get('/', verifyJwtToken, async (req: any, res: any) => {
     logger.info(`User.GetProfile beginning ${req.path}`);
     const profile = await UserService.getProfile();
     logger.info(`User.GetProfile returning`);
-    return res.json(profile);
+    return BaseController.sendResponse(res, profile);
   } catch (error) {
     logger.error(error, error);
-    return res.status(500).json(new ApiErrorResponse());
+    return BaseController.ToError(res, error);
   }
 });
 

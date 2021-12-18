@@ -1,28 +1,14 @@
 import { STATUS_CODE_SUCCESS } from '../constants/status-code.const';
 
-/**
- * @openapi
- * components:
- *  schemas:
- *      ApiResponse:
- *          type: object
- *          properties:
- *              code:
- *                  type: number
- *                  enum:
- *                  - 0
- *                  - 1
- *                  - 2
- *              message:
- *                  type: string
- *          discriminator:
- *            propertyName: code
- */
 export default class ApiResponse {
-  public code: number;
-  private message: string | undefined;
-  constructor(code = STATUS_CODE_SUCCESS, message?: string) {
-    this.code = code;
-    this.message = message;
+  public statusCode: number;
+  public content: any;
+  constructor(content: any, statusCode = STATUS_CODE_SUCCESS) {
+    this.statusCode = statusCode;
+    this.content = content;
+  }
+
+  public get isSuccess(): boolean {
+    return this.statusCode === STATUS_CODE_SUCCESS;
   }
 }

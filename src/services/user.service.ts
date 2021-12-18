@@ -1,6 +1,5 @@
 import { STATUS_CODE_NOT_FOUND } from '../constants/status-code.const';
 import UserDal from '../data-access/user.dal';
-import ApiDataResponse from '../models/api-data-response';
 import ApiResponse from '../models/api-response';
 import JwtHelper from '../utils/jwt-helper';
 import { Mail } from '../utils/mail';
@@ -16,7 +15,7 @@ export default class UserService {
       to: user.email
     });
     await mail.send();
-    return new ApiDataResponse({ token });
+    return new ApiResponse({ token });
   }
 
   public static async editProfile(userData: any) {
@@ -30,7 +29,7 @@ export default class UserService {
   public static async getProfile() {
     const username = this.currentUser.username;
     const user = await UserDal.getUserByUsername(username);
-    return new ApiDataResponse(user.toObject());
+    return new ApiResponse(user.toObject());
   }
 
   private static async updateUser(data: any) {
@@ -40,8 +39,8 @@ export default class UserService {
     const user = await UserDal.updateUser({ username }, data);
 
     if (user) {
-      return new ApiDataResponse(user.toObject());
+      return new ApiResponse(user.toObject());
     }
-    return new ApiResponse(STATUS_CODE_NOT_FOUND, 'No User found');
+    return new ApiResponse('No User found', STATUS_CODE_NOT_FOUND);
   }
 }

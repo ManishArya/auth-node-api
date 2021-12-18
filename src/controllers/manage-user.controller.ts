@@ -1,11 +1,11 @@
 import express from 'express';
 import { STATUS_CODE_SUCCESS } from '../constants/status-code.const';
 import verifyJwtToken from '../middlewares/verify-jwt-token';
-import ApiErrorResponse from '../models/api-error-response';
 import ApiResponse from '../models/api-response';
 import AuthService from '../services/auth.service';
 import ManageUserService from '../services/manage-user.service';
 import logger from '../utils/logger';
+import BaseController from './base.controller';
 const router = express.Router();
 
 /**
@@ -31,12 +31,12 @@ const router = express.Router();
 router.get('/all', verifyJwtToken, async (req, res) => {
   try {
     logger.info(`${router.name}.All beginning ${req.path}`);
-    const users = await ManageUserService.getUsers();
+    const response = await ManageUserService.getUsers();
     logger.info(`ManageUser.All returning`);
-    return res.json(users);
+    return BaseController.sendResponse(res, response);
   } catch (error) {
     logger.error(error, error);
-    return res.status(500).json(new ApiErrorResponse());
+    return BaseController.ToError(res, error);
   }
 });
 
@@ -65,10 +65,10 @@ router.delete('/:username?', verifyJwtToken, async (req, res) => {
     logger.info(`ManageUser.Delete beginning ${req.path} ${req.route}`);
     const result = await ManageUserService.deleteUser(username);
     logger.info(`ManageUser.Delete returning`);
-    return res.json(result);
+    return BaseController.sendResponse(res, result);
   } catch (error) {
     logger.error(error, error);
-    return res.status(500).json(new ApiErrorResponse(error));
+    return BaseController.ToError(res, error);
   }
 });
 
@@ -82,15 +82,15 @@ router.post('/deleteUserAccount', verifyJwtToken, async (req, res) => {
     const filter = { username };
     result = await AuthService.validateUser(filter, password, 'Password is wrong !!!');
 
-    if (result.code === STATUS_CODE_SUCCESS) {
+    if (result.statusCode === STATUS_CODE_SUCCESS) {
       result = await ManageUserService.deleteUser(username);
     }
 
     logger.info(`ManageUser.DeleteUserAccount returning`);
-    return res.json(result);
+    return BaseController.sendResponse(res, result);
   } catch (error) {
     logger.error(error);
-    return res.status(500).json(new ApiErrorResponse(error));
+    return BaseController.ToError(res, error);
   }
 });
 

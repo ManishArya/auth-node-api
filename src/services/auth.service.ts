@@ -1,8 +1,9 @@
 import bcrypt from 'bcrypt';
 import { STATUS_CODE_BAD_REQUEST, STATUS_CODE_NOT_FOUND, STATUS_CODE_SUCCESS } from '../constants/status-code.const';
 import UserDal from '../data-access/user.dal';
-import ApiDataResponse from '../models/api-data-response';
+import { LoginResponseCode } from '../enums/login-response-code.enum';
 import ApiResponse from '../models/api-response';
+import AuthResponse from '../models/auth-response';
 import UserInfo from '../models/user-info';
 import JwtHelper from '../utils/jwt-helper';
 import { Mail } from '../utils/mail';
@@ -14,15 +15,19 @@ export default class AuthService {
     filter: any,
     password: string,
     errorMessage = 'Credential is wrong !!!'
-  ): Promise<ApiResponse> {
+  ): Promise<AuthResponse> {
     const user = await UserDal.getUser(filter);
 
     if (!user) {
-      return new ApiResponse(STATUS_CODE_NOT_FOUND, 'User not found');
+      return new AuthResponse('User not found', STATUS_CODE_NOT_FOUND, LoginResponseCode.NoUser);
     }
 
     if (user.isUserLocked) {
-      return new ApiResponse(STATUS_CODE_BAD_REQUEST, 'User is locked. Please try after some time later');
+      return new AuthResponse(
+        'User is locked. Please try after some time later',
+        STATUS_CODE_BAD_REQUEST,
+        LoginResponseCode.locked
+      );
     }
 
     const isPasswordValid = await this.isValidPassword(password, user.password);
@@ -30,15 +35,15 @@ export default class AuthService {
     await this.updateUserLockedInformation(user, isPasswordValid);
 
     if (isPasswordValid) {
-      return new ApiDataResponse(user);
+      return new AuthResponse(user, STATUS_CODE_SUCCESS, LoginResponseCode.successful);
     }
 
-    return new ApiResponse(STATUS_CODE_BAD_REQUEST, errorMessage);
+    return new AuthResponse(errorMessage, STATUS_CODE_BAD_REQUEST, LoginResponseCode.unsuccessful);
   }
 
   public static async generateToken(user: any) {
     const token = JwtHelper.generateToken(user.username, user.isAdmin);
-    return new ApiDataResponse({ token });
+    return new ApiResponse({ token });
   }
 
   public static async sendResetPasswordLink(username: string, email: string) {
@@ -50,9 +55,9 @@ export default class AuthService {
         text: ''
       });
       await mail.send();
-      return new ApiResponse(STATUS_CODE_SUCCESS, 'Please check email for further instruction !!!');
+      return new ApiResponse('Please check email for further instruction !!!', STATUS_CODE_SUCCESS);
     }
-    return new ApiResponse(STATUS_CODE_NOT_FOUND, 'User does not exists !!!');
+    return new ApiResponse('User does not exists !!!', STATUS_CODE_NOT_FOUND);
   }
 
   public static async changePassword(user: any, password: string) {
@@ -64,7 +69,7 @@ export default class AuthService {
       text: ''
     });
     await mail.send();
-    return new ApiResponse(STATUS_CODE_SUCCESS, 'Password Changed Successfully');
+    return new ApiResponse('Password Changed Successfully', STATUS_CODE_SUCCESS);
   }
 
   private static async isValidPassword(password: string, dbPassword: string): Promise<boolean> {

@@ -2,11 +2,11 @@ import express from 'express';
 import { STATUS_CODE_BAD_REQUEST, STATUS_CODE_SUCCESS } from '../constants/status-code.const';
 import recaptchVerify from '../middlewares/recaptch-verify';
 import verifyJwtToken from '../middlewares/verify-jwt-token';
-import ApiDataResponse from '../models/api-data-response';
-import ApiErrorResponse from '../models/api-error-response';
 import ApiResponse from '../models/api-response';
+import AuthResponse from '../models/auth-response';
 import AuthService from '../services/auth.service';
 import logger from '../utils/logger';
+import BaseController from './base.controller';
 const router = express.Router();
 
 /**
@@ -53,17 +53,17 @@ router.post('/token', recaptchVerify, async (req, res) => {
     let result: ApiResponse;
     const filter = { $or: [{ username: usernameOrEmail }, { email: usernameOrEmail }] };
     result = await AuthService.validateUser(filter, password);
-
-    if (result.code === STATUS_CODE_SUCCESS) {
-      const user = (result as ApiDataResponse<any>).data;
+    const loginResponseCode = (result as AuthResponse).code;
+    if (result.statusCode === STATUS_CODE_SUCCESS) {
+      const user = result.content;
       result = await AuthService.generateToken(user);
     }
 
     logger.info(`Auth.Token returning`);
-    return res.status(result.code).json(result);
+    return BaseController.sendResponse(res, result, loginResponseCode);
   } catch (error) {
     logger.error(error);
-    res.status(500).json(new ApiErrorResponse());
+    return BaseController.ToError(res, error);
   }
 });
 
@@ -97,10 +97,10 @@ router.post('/forgetPassword', recaptchVerify, async (req, res) => {
     logger.info(`Auth.ForgetPassword beginning ${req.path}`);
     const result = await AuthService.sendResetPasswordLink(username, email);
     logger.info(`Auth.ForgetPassword returning`);
-    res.json(result);
+    return BaseController.sendResponse(res, result);
   } catch (error) {
     logger.error(error, error);
-    res.status(500).json(new ApiErrorResponse());
+    return BaseController.ToError(res, error);
   }
 });
 
@@ -131,25 +131,26 @@ router.post('/changePassword', verifyJwtToken, async (req, res) => {
     const { password, confirmPassword, oldPassword } = req.body;
 
     if (password?.localeCompare(confirmPassword) !== 0) {
-      return res
-        .status(400)
-        .json(new ApiResponse(STATUS_CODE_BAD_REQUEST, 'password and confirm password does not match !!!'));
+      return BaseController.sendResponse(
+        res,
+        new ApiResponse('password and confirm password does not match !!!', STATUS_CODE_BAD_REQUEST)
+      );
     }
 
     let result: ApiResponse;
     const filter = { username: currentUser.username };
     result = await AuthService.validateUser(filter, oldPassword, 'Old password is wrong !!!');
 
-    if (result.code === STATUS_CODE_SUCCESS) {
-      const user = (result as ApiDataResponse<any>).data;
+    if (result.statusCode === STATUS_CODE_SUCCESS) {
+      const user = result.content;
       result = await AuthService.changePassword(user, password);
     }
 
     logger.info(`Auth.ChangePassword returning`);
-    return res.status(result.code).json(result);
+    return BaseController.sendResponse(res, result);
   } catch (error) {
     logger.error(error, error);
-    return res.status(500).json(new ApiErrorResponse(error));
+    return BaseController.ToError(res, error);
   }
 });
 

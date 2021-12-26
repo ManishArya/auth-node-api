@@ -1,9 +1,11 @@
 import bcrypt from 'bcrypt';
 import { STATUS_CODE_BAD_REQUEST, STATUS_CODE_NOT_FOUND, STATUS_CODE_SUCCESS } from '../constants/status-code.const';
+import PasswordHistoryDAL from '../data-access/password-history.dal';
 import UserDal from '../data-access/user.dal';
 import { LoginResponseCode } from '../enums/login-response-code.enum';
 import ApiResponse from '../models/api-response';
 import AuthResponse from '../models/auth-response';
+import IUser from '../models/IUser';
 import UserInfo from '../models/user-info';
 import JwtHelper from '../utils/jwt-helper';
 import { Mail } from '../utils/mail';
@@ -30,9 +32,9 @@ export default class AuthService {
       );
     }
 
-    const isPasswordValid = await this.isValidPassword(password, user.password);
+    const isPasswordValid = await user.isPasswordValid(password);
 
-    await this.updateUserLockedInformation(user, isPasswordValid);
+    await user.updateUserLockedInformation(isPasswordValid);
 
     if (isPasswordValid) {
       return new AuthResponse(user, STATUS_CODE_SUCCESS, LoginResponseCode.successful);
@@ -41,7 +43,7 @@ export default class AuthService {
     return new AuthResponse(errorMessage, STATUS_CODE_BAD_REQUEST, LoginResponseCode.unsuccessful);
   }
 
-  public static async generateToken(user: any) {
+  public static async generateToken(user: IUser) {
     const token = JwtHelper.generateToken(user.username, user.isAdmin);
     return new ApiResponse({ token });
   }
@@ -60,29 +62,43 @@ export default class AuthService {
     return new ApiResponse('User does not exists !!!', STATUS_CODE_NOT_FOUND);
   }
 
-  public static async changePassword(user: any, password: string) {
-    user.password = password;
-    await user.save();
-    const mail = new Mail({
-      subject: `Your, ${user.name}, Password has changed successfully`,
-      to: user.email,
-      text: ''
-    });
-    await mail.send();
-    return new ApiResponse('Password Changed Successfully', STATUS_CODE_SUCCESS);
+  public static async changePassword(user: IUser, password: string) {
+    const isSame = await user.isOldPasswordSameAsCurrentPassword(password);
+    if (!isSame) {
+      const isExists = await this.checkPasswordIsInHistory(user.username, password);
+      if (!isExists) {
+        await PasswordHistoryDAL.savePassword(user.password, user.username);
+        user.password = password;
+        await (user as any).save();
+        const mail = new Mail({
+          subject: `Your, ${user.name}, Password has changed successfully`,
+          to: user.email,
+          text: ''
+        });
+        await mail.send();
+        return new ApiResponse('Password Changed Successfully', STATUS_CODE_SUCCESS);
+      }
+      return new ApiResponse('This password is one of recent changed password', STATUS_CODE_BAD_REQUEST);
+    }
+    return new ApiResponse('Current password can not be same as old password', STATUS_CODE_BAD_REQUEST);
   }
 
-  private static async isValidPassword(password: string, dbPassword: string): Promise<boolean> {
-    if (password) {
-      return await bcrypt.compare(password, dbPassword);
+  private static async checkPasswordIsInHistory(username: string, password: string): Promise<boolean> {
+    const passwordHistory: any[] = await PasswordHistoryDAL.getPasswords(username);
+    const passwords = passwordHistory.map((p) => p.password);
+    for (let i = 0; i < passwords.length; i++) {
+      const isValidPassword = await this.isValidPassword(password, passwords[i]);
+      if (isValidPassword) {
+        return Promise.resolve(true);
+      }
     }
     return Promise.resolve(false);
   }
 
-  private static async updateUserLockedInformation(user: any, isPasswordValid: boolean) {
-    let count = user.failureAttempt;
-    user.failureAttempt = isPasswordValid ? 0 : count + 1;
-    user.lockedAt = isPasswordValid ? null : new Date();
-    await user.save({ validateBeforeSave: false });
+  private static async isValidPassword(password: string, hashPassword: string): Promise<boolean> {
+    if (password) {
+      return await bcrypt.compare(password, hashPassword);
+    }
+    return Promise.resolve(false);
   }
 }

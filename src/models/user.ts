@@ -2,9 +2,10 @@ import bcrypt from 'bcrypt';
 import config from 'config';
 import moment from 'moment';
 import mongoose from 'mongoose';
+import IUser from './IUser';
 import UserProfile from './user-profile';
 
-const userSchema = new mongoose.Schema(
+const userSchema = new mongoose.Schema<IUser>(
   {
     name: {
       type: String,
@@ -86,6 +87,24 @@ const userSchema = new mongoose.Schema(
   }
 );
 
+userSchema.methods.updateUserLockedInformation = async function (isPasswordValid: boolean) {
+  let count = this.failureAttempt;
+  this.failureAttempt = isPasswordValid ? 0 : count + 1;
+  this.lockedAt = isPasswordValid ? null : new Date();
+  await this.save({ validateBeforeSave: false });
+};
+
+userSchema.methods.isOldPasswordSameAsCurrentPassword = async function (userInputPassword: string) {
+  return await bcrypt.compare(userInputPassword, this.password);
+};
+
+userSchema.methods.isPasswordValid = async function (userInputPassword: string) {
+  if (userInputPassword) {
+    return await bcrypt.compare(userInputPassword, this.password);
+  }
+  return Promise.resolve(false);
+};
+
 userSchema.virtual('isUserLocked').get(function (this: any) {
   const lockedAt = this.lockedAt as Date;
   const lockedAtInLocal = moment.utc(lockedAt).local();
@@ -117,4 +136,4 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-export default mongoose.model('user', userSchema);
+export default mongoose.model<IUser>('user', userSchema);

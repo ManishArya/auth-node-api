@@ -4,6 +4,7 @@ import recaptchVerify from '../middlewares/recaptch-verify';
 import verifyJwtToken from '../middlewares/verify-jwt-token';
 import ApiResponse from '../models/api-response';
 import AuthResponse from '../models/auth-response';
+import ILogin from '../models/ILogin';
 import AuthService from '../services/auth.service';
 import logger from '../utils/logger';
 import BaseController from './base.controller';
@@ -48,7 +49,7 @@ const router = express.Router();
 
 router.post('/token', recaptchVerify, async (req, res) => {
   try {
-    const { usernameOrEmail, password } = req.body;
+    const { usernameOrEmail, password } = req.body as ILogin;
     logger.info(`Auth.Token beginning ${req.path}`);
     let result: ApiResponse;
     const filter = { $or: [{ username: usernameOrEmail }, { email: usernameOrEmail }] };

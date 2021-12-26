@@ -1,35 +1,37 @@
+import { FilterQuery } from 'mongoose';
+import IUser from '../models/IUser';
 import User from '../models/user';
 
 export default class UserDal {
-  static async getUserByUsername(username: any) {
+  public static async getUserByUsername(username: string) {
     return await this.getUser({ username });
   }
 
-  static async getUser(filterQuery: any) {
+  public static async getUser(filterQuery: FilterQuery<IUser>) {
     return await User.findOne(filterQuery);
   }
 
-  static async saveUser(userData: any) {
+  public static async saveUser(userData: any) {
     const user = new User(userData);
     return await user.save();
   }
 
-  static async updateUser(filter: any, update: any) {
+  public static async updateUser(filter: any, update: any) {
     return await User.findOneAndUpdate(filter, update, {
       returnOriginal: false,
       runValidators: true
     });
   }
 
-  static async getUsers() {
+  public static async getUsers() {
     return await User.find();
   }
 
-  static async deleteUser(username: any) {
+  public static async deleteUser(username: any) {
     return await User.findOneAndDelete({ username });
   }
 
-  static async checkUserExists(filterQuery: any) {
+  public static async checkUserExists(filterQuery: any): Promise<boolean> {
     return await User.exists(filterQuery);
   }
 }

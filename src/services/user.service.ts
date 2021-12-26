@@ -29,7 +29,7 @@ export default class UserService {
   public static async getProfile() {
     const username = this.currentUser.username;
     const user = await UserDal.getUserByUsername(username);
-    return new ApiResponse(user.toObject());
+    return new ApiResponse(user?.toObject());
   }
 
   private static async updateUser(data: any) {

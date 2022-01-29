@@ -9,41 +9,11 @@ import logger from '../utils/logger';
 import BaseController from './base.controller';
 const router = express.Router();
 
-/**
- * @openapi
- *  /user/:
- *  post:
- *    description: 'Add New User'
- *    tags: [Manage User API]
- *    requestBody:
- *      content:
- *        multipart/form-data:
- *          schema:
- *            properties:
- *              photo:
- *                type: string
- *                format: binary
- *              password:
- *                type: string
- *            allOf:
- *            - $ref: '#/components/schemas/UserProfile'
- *    responses:
- *      200:
- *        description: Added New User Successfully
- *        content:
- *          application/json:
- *            schema:
- *              $ref: '#/components/schemas/UserProfile'
- *      500:
- *        $ref: '#/components/responses/500'
- */
-
-router.post('/', recaptchVerify, upload().single('photo'), async (req, res) => {
+router.post('/', recaptchVerify, async (req, res) => {
   try {
-    const file = req.file;
     const { username, name, email, mobile, password } = req.body;
     logger.info(`User.Newuser beginning ${req.path}`);
-    const result = await UserService.saveUser({ username, name, email, mobile, password, photo: file?.buffer });
+    const result = await UserService.saveUser({ username, name, email, mobile, password });
     logger.info(`User.NewUser returning`);
     return BaseController.sendResponse(res, result);
   } catch (error) {
@@ -86,16 +56,16 @@ router.put('/', verifyJwtToken, async (req: any, res) => {
   }
 });
 
-router.put('/uploadPhoto', verifyJwtToken, upload().single('photo'), async (req: any, res) => {
+router.put('/uploadAvatar', verifyJwtToken, upload().single('avatar'), async (req: any, res) => {
   UserService.currentUser = req.currentUser;
-  const photo = req.file?.buffer;
-  if (!photo) {
-    return BaseController.sendResponse(res, new ApiResponse('No photo', STATUS_CODE_BAD_REQUEST));
+  const avatar = req.file?.buffer;
+  if (!avatar) {
+    return BaseController.sendResponse(res, new ApiResponse('No avatar', STATUS_CODE_BAD_REQUEST));
   }
   try {
-    logger.info(`User.UploadPhoto beginning ${req.path}`);
-    const result = await UserService.updatePhoto(photo);
-    logger.info(`User.UploadPhoto returning`);
+    logger.info(`User.UploadAvatar beginning ${req.path}`);
+    const result = await UserService.updateAvatar(avatar);
+    logger.info(`User.UploadAvatar returning`);
     return BaseController.sendResponse(res, result);
   } catch (error) {
     logger.error(error, error);
@@ -103,12 +73,12 @@ router.put('/uploadPhoto', verifyJwtToken, upload().single('photo'), async (req:
   }
 });
 
-router.delete('/removePhoto', verifyJwtToken, async (req: any, res) => {
+router.delete('/removeAvatar', verifyJwtToken, async (req: any, res) => {
   UserService.currentUser = req.currentUser;
   try {
-    logger.info(`User.RemovePhoto beginning ${req.path}`);
-    const result = await UserService.updatePhoto();
-    logger.info(`User.RemovePhoto returning`);
+    logger.info(`User.RemoveAvatar beginning ${req.path}`);
+    const result = await UserService.updateAvatar();
+    logger.info(`User.RemoveAvatar returning`);
     return BaseController.sendResponse(res, result);
   } catch (error) {
     logger.error(error, error);

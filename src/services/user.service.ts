@@ -22,8 +22,8 @@ export default class UserService {
     return await this.updateUser(userData);
   }
 
-  public static async updatePhoto(photo?: Buffer) {
-    return await this.updateUser({ photo });
+  public static async updateAvatar(avatar?: Buffer) {
+    return await this.updateUser({ avatar });
   }
 
   public static async getProfile() {

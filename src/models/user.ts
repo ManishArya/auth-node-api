@@ -48,7 +48,7 @@ const userSchema = new mongoose.Schema<IUser>(
         message: 'Enter valid mobile number'
       }
     },
-    photo: { type: Buffer },
+    avatar: { type: Buffer },
     username: {
       type: String,
       required: [true, 'username is required'],

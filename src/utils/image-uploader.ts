@@ -16,7 +16,7 @@ export default () => {
         return cb(null, true);
       }
 
-      cb(new Error(`Error: File upload only supports the ' + 'following filetypes - ${allowedFileType}`));
+      cb(new Error(`You can upload only following filetypes - ${allowedFileType}`));
     }
   });
 };

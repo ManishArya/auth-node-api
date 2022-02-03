@@ -1,5 +1,6 @@
 import cors from 'cors';
 import express from 'express';
+import errorHandling from './middlewares/error-handling';
 import db from './startup/db';
 import route from './startup/route';
 import logger from './utils/logger';
@@ -10,6 +11,7 @@ app.set('view engine', 'ejs');
 app.use(cors());
 route(app);
 db();
+app.use(errorHandling);
 const port = process.env.PORT || 3000;
 
 app.listen(port, () => logger.info(`App listening on port ${port}!`));

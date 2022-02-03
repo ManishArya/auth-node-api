@@ -40,7 +40,7 @@ const userSchema = new mongoose.Schema<IUser>(
       unique: true,
       validate: {
         validator: function (v: string) {
-          if (v === 'undefined' || v === 'null' || v.trim() === '') {
+          if (v === 'undefined' || v === 'null' || v === null || v.trim() === '') {
             return true;
           }
           return /^(0|91)?[7-9]\d{9}$/.test(v);

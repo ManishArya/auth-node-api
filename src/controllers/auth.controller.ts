@@ -94,9 +94,9 @@ router.post('/token', recaptchVerify, async (req, res) => {
 
 router.post('/forgetPassword', recaptchVerify, async (req, res) => {
   try {
-    const { username, email } = req.body;
+    const { usernameOrEmail } = req.body;
     logger.info(`Auth.ForgetPassword beginning ${req.path}`);
-    const result = await AuthService.sendResetPasswordLink(username, email);
+    const result = await AuthService.sendResetPasswordLink(usernameOrEmail);
     logger.info(`Auth.ForgetPassword returning`);
     return BaseController.sendResponse(res, result);
   } catch (error) {

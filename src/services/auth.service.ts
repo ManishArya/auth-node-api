@@ -48,8 +48,8 @@ export default class AuthService {
     return new ApiResponse({ token });
   }
 
-  public static async sendResetPasswordLink(username: string, email: string) {
-    const user = await UserDal.getUser({ $or: [{ username }, { email }] });
+  public static async sendResetPasswordLink(usernameOrEmail: string) {
+    const user = await UserDal.getUser({ $or: [{ username: usernameOrEmail }, { email: usernameOrEmail }] });
     if (user) {
       const mail = new Mail({
         subject: 'Reset Password Link',

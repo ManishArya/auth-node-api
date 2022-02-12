@@ -25,8 +25,10 @@ export default abstract class BaseController {
       apiResponse.content = validationsErrors;
       apiResponse.statusCode = STATUS_CODE_UNPROCESSING;
     } else if (error?.name === 'MongoError' && error?.code === 11000) {
+      let validationsErrors: { [key: string]: string } = {};
       const key = Object.keys(error.keyValue)[0];
-      apiResponse.content = `${key} is alreay present`;
+      validationsErrors[key] = `${key} is taken`;
+      apiResponse.content = validationsErrors;
     }
     return this.sendResponse(res, apiResponse);
   }

@@ -11,9 +11,9 @@ const router = express.Router();
 
 router.post('/', recaptchVerify, async (req, res) => {
   try {
-    const { username, name, email, mobile, password } = req.body;
+    const { username, name, email, password } = req.body;
     logger.info(`User.Newuser beginning ${req.path}`);
-    const result = await UserService.saveUser({ username, name, email, mobile, password });
+    const result = await UserService.saveUser({ username, name, email, password });
     logger.info(`User.NewUser returning`);
     return BaseController.sendResponse(res, result);
   } catch (error) {

@@ -3,6 +3,7 @@ import { STATUS_CODE_BAD_REQUEST } from '../constants/status-code.const';
 import recaptchVerify from '../middlewares/recaptch-verify';
 import verifyJwtToken from '../middlewares/verify-jwt-token';
 import ApiResponse from '../models/api-response';
+import AuthService from '../services/auth.service';
 import UserService from '../services/user.service';
 import upload from '../utils/image-uploader';
 import logger from '../utils/logger';
@@ -49,6 +50,32 @@ router.put('/', verifyJwtToken, async (req: any, res) => {
     logger.info(`User.Edit beginning ${req.path}`);
     const result = await UserService.editProfile({ username, name, email, mobile });
     logger.info(`User.Edit returning`);
+    return BaseController.sendResponse(res, result);
+  } catch (error) {
+    logger.error(error, error);
+    return BaseController.ToError(res, error);
+  }
+});
+
+router.put('/updateEmailAddress', verifyJwtToken, async (req: any, res) => {
+  const { password, email } = req.body;
+  UserService.currentUser = req.currentUser;
+
+  try {
+    logger.info(`User.updateEmailAddress beginning ${req.path}`);
+
+    let result: ApiResponse;
+    const filter = { username: UserService.currentUser.username };
+    result = await AuthService.validateUser(filter, password, 'Password is wrong !!!');
+
+    if (!result.isSuccess) {
+      return BaseController.sendResponse(res, new ApiResponse({ password: result.content }, result.statusCode));
+    }
+
+    result = await UserService.updateEmailAddress(email);
+
+    logger.info(`User.updateEmailAddress returning`);
+
     return BaseController.sendResponse(res, result);
   } catch (error) {
     logger.error(error, error);

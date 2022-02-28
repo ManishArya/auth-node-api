@@ -26,6 +26,10 @@ export default class UserService {
     return await this.updateUser({ avatar });
   }
 
+  public static async updateEmailAddress(email: string) {
+    return await this.updateUser({ email });
+  }
+
   public static async getProfile() {
     const username = this.currentUser.username;
     const user = await UserDal.getUserByUsername(username);

@@ -8,15 +8,15 @@ export default () => {
     storage,
     limits: { fileSize: parseInt(config.get('images.size'), 10) },
     fileFilter: (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-      const allowedFileType = /jpeg|jpg|png/;
-      const mimetype = allowedFileType.test(file.mimetype);
-      const extension = allowedFileType.test(path.extname(file.originalname).toLowerCase());
+      const validImageTypes = 'jpeg, jpg, png';
+      const mimetype = validImageTypes.includes(file.mimetype);
+      const extension = validImageTypes.includes(path.extname(file.originalname).toLowerCase());
 
       if (mimetype && extension) {
         return cb(null, true);
       }
 
-      cb(new Error(`You can upload only following filetypes - ${allowedFileType}`));
+      cb(new Error(`You can upload only these image types - ${validImageTypes}`));
     }
   });
 };

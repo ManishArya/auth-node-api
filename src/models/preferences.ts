@@ -50,8 +50,8 @@ export default class Preferences {
     });
   }
 
-  public get enableDarkTheme(): boolean {
-    return this.getUserPreferences<boolean>(SectionName._preferncesSection, SectionKey._darkTheme, false);
+  public get enableDarkTheme() {
+    return false;
   }
 
   public set enableDarkTheme(value: boolean) {
@@ -59,8 +59,7 @@ export default class Preferences {
   }
 
   public get languageCode() {
-    return (async () =>
-      await this.getUserPreferences<string>(SectionName._preferncesSection, SectionKey._languageCode, 'en-us'))();
+    return '';
   }
 
   public set languageCode(value: string) {

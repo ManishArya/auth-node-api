@@ -1,5 +1,6 @@
 import PreferencesDAL from '../data-access/preferences.dal';
 import IPrefrencesSchema from './IPreferences-schema';
+import preferencesSchema from './preferences-schema';
 
 class SectionName {
   public static readonly _preferncesSection = 'preferences';
@@ -11,7 +12,10 @@ class SectionKey {
 }
 
 export default class Preferences {
-  private _preferences: Map<string, Map<string, string>> = new Map();
+  private isNew: boolean = false;
+  private readonly _systemPreferences: Map<string, Map<string, string>> = new Map();
+  private readonly _userPreferences: Map<string, Map<string, string>> = new Map();
+  private readonly _preferences: Map<string, Map<string, string>> = new Map();
   private _username: string = '';
 
   constructor(preferencesSchema: IPrefrencesSchema[], username: string) {
@@ -36,14 +40,14 @@ export default class Preferences {
         const preferenceKey = preference[0];
 
         if (preferenceValue && preferenceKey) {
-          this._preferences.set(section, preferenceMap.set(preferenceKey, preferenceValue));
+          if (p.username) {
+            this._userPreferences.set(section, preferenceMap.set(preferenceKey, preferenceValue));
+          } else {
+            this._systemPreferences.set(section, preferenceMap.set(preferenceKey, preferenceValue));
+          }
         }
       });
     });
-  }
-
-  public async getPreferences1(): Promise<IPrefrencesSchema[]> {
-    return await PreferencesDAL.getPreferences(this._username);
   }
 
   public get enableDarkTheme(): boolean {
@@ -55,7 +59,8 @@ export default class Preferences {
   }
 
   public get languageCode() {
-    return this.getUserPreferences<string>(SectionName._preferncesSection, SectionKey._languageCode, 'en-us');
+    return (async () =>
+      await this.getUserPreferences<string>(SectionName._preferncesSection, SectionKey._languageCode, 'en-us'))();
   }
 
   public set languageCode(value: string) {
@@ -69,12 +74,41 @@ export default class Preferences {
     };
   }
 
-  public async update() {}
+  public async update() {
+    if (this._preferences.size) {
+      const y = Array.from(this._preferences.entries()).flat();
+      const sectionName = y[0] as string;
+      const v = y[1] as Map<string, string>;
+      const x = v?.entries();
+      if (x) {
+        const value = Array.from(x)
+          .flatMap((x) => x.join('='))
+          .join(' ');
+
+        const preference = {
+          sectionName,
+          username: this._username,
+          value
+        };
+
+        if (this.isNew) {
+          preferencesSchema.create(preference);
+        } else {
+          preferencesSchema.updateOne(
+            {
+              sectionName: SectionName._preferncesSection
+            },
+            preference
+          );
+        }
+      }
+    }
+  }
 
   private async create() {}
 
-  private getUserPreferences<T>(section: string, key: string, defaultValue: T) {
-    return this.getPreferences<T>(section, key, defaultValue, this._username);
+  private async getUserPreferences<T>(section: string, key: string, defaultValue: T) {
+    return await this.getPreferences<T>(section, key, defaultValue, this._username);
   }
 
   private setUserPreferences<T>(section: string, key: string, value: T) {
@@ -85,9 +119,17 @@ export default class Preferences {
     return this.getPreferences<T>(section, key, defaultValue, '');
   }
 
-  private getPreferences<T>(section: string, key: string, defaultValue: T, username: string) {
+  public async readPrefrences(sectionName: string): Promise<IPrefrencesSchema> {
+    return await PreferencesDAL.getLeanPreference(this._username, sectionName);
+  }
+
+  private async getPreferences<T>(section: string, key: string, defaultValue: T, username: string) {
     if (!this._preferences.has(section)) {
-      return defaultValue;
+      const preferenceSchema = await this.readPrefrences(section);
+      if (!preferenceSchema) {
+        return defaultValue;
+      }
+      this.setPreferences(section, key, preferenceSchema.value, username);
     }
 
     const preference = this._preferences.get(section);
@@ -111,11 +153,12 @@ export default class Preferences {
 
   private setPreferences<T>(section: string, key: string, value: T, username: string) {
     if (!this._preferences.has(section)) {
-      this._preferences.set(section, new Map<string, string>([[key, 'kkk']]));
+      this.isNew = true;
+      this._preferences.set(section, new Map<string, string>([[key, value as unknown as string]]));
     } else {
       const preference = this._preferences.get(section);
       if (preference) {
-        this._preferences.set(section, preference.set(key, 'kkk'));
+        this._preferences.set(section, preference.set(key, value as unknown as string));
       }
     }
   }

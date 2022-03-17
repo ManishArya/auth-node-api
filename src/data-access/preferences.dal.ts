@@ -10,6 +10,10 @@ export default class PreferencesDAL {
     return preferencesSchema.findOne({ username, sectionName });
   }
 
+  public static async getLeanPreference(username: string, sectionName: string): Promise<IPrefrencesSchema> {
+    return preferencesSchema.findOne({ username, sectionName }).lean();
+  }
+
   public static async createPreference(preferenceSchema: IPrefrencesSchema) {
     preferencesSchema.create(preferenceSchema);
   }

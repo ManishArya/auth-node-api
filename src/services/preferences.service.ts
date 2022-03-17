@@ -22,28 +22,28 @@ export default class PreferencesService {
     p.enableDarkTheme = enable;
     p.languageCode = 'en-cn';
     p.update();
-    if (!preference) {
-      const newPreference = {
-        sectionName: SectionName._preferncesSection,
-        username: this.currentUser.username,
-        value: `${SectionKey._languageCode}=${enable}`
-      } as IPrefrencesSchema;
+    // if (!preference) {
+    //   const newPreference = {
+    //     sectionName: SectionName._preferncesSection,
+    //     username: this.currentUser.username,
+    //     value: `${SectionKey._languageCode}=${enable}`
+    //   } as IPrefrencesSchema;
 
-      await PreferencesDAL.createPreference(newPreference);
-    } else {
-      let value = preference.value || '';
+    //   await PreferencesDAL.createPreference(newPreference);
+    // } else {
+    //   let value = preference.value || '';
 
-      const values = value.split(' ').filter((x) => !!x);
+    //   const values = value.split(' ').filter((x) => !!x);
 
-      if (!value.includes(SectionKey._darkTheme)) {
-        values.push(`${SectionKey._darkTheme}=${enable}`);
-      } else {
-        const index = values.findIndex((v) => v.includes(SectionKey._darkTheme));
-        values[index] = `${SectionKey._darkTheme}=${enable}`;
-      }
-      preference.value = values.join(' ');
-      preference.save();
-    }
+    //   if (!value.includes(SectionKey._darkTheme)) {
+    //     values.push(`${SectionKey._darkTheme}=${enable}`);
+    //   } else {
+    //     const index = values.findIndex((v) => v.includes(SectionKey._darkTheme));
+    //     values[index] = `${SectionKey._darkTheme}=${enable}`;
+    //   }
+    //   preference.value = values.join(' ');
+    //   preference.save();
+    // }
   }
 
   public static async setPreferences() {

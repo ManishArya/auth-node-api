@@ -1,5 +1,6 @@
 import express from 'express';
 import verifyJwtToken from '../middlewares/verify-jwt-token';
+import ApiResponse from '../models/api-response';
 import PreferencesService from '../services/preferences.service';
 import logger from '../utils/logger';
 import BaseController from './base.controller';
@@ -43,6 +44,8 @@ router.post('/setDarkTheme', verifyJwtToken, async (req, res) => {
     await PreferencesService.setDarkTheme(req.body.enableDarkTheme);
 
     logger.info(`Preferences.setDarkTheme returning`);
+
+    return BaseController.sendResponse(res, new ApiResponse('update sucessfully'));
   } catch (error) {
     logger.error(error, error);
     return BaseController.ToError(res, error);

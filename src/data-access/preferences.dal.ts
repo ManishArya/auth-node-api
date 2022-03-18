@@ -18,5 +18,13 @@ export default class PreferencesDAL {
     preferencesSchema.create(preferenceSchema);
   }
 
+  public static async checkPreferenceExists(filter: any) {
+    return preferencesSchema.exists(filter);
+  }
+
+  public static async updatePreference(filter: any, update: IPrefrencesSchema) {
+    preferencesSchema.updateOne(filter, update);
+  }
+
   public static async setPreferences() {}
 }

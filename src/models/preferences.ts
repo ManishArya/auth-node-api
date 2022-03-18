@@ -1,9 +1,9 @@
 import PreferencesDAL from '../data-access/preferences.dal';
+import IPreferences from '../models/IPreferences';
 import IPrefrencesSchema from './IPreferences-schema';
-import preferencesSchema from './preferences-schema';
 
 class SectionName {
-  public static readonly _preferncesSection = 'preferences';
+  public static readonly _preferences = 'preferences';
 }
 
 class SectionKey {
@@ -11,43 +11,13 @@ class SectionKey {
   public static readonly _languageCode = 'languageCode';
 }
 
-export default class Preferences {
-  private isNew: boolean = false;
+export default class Preferences implements IPreferences {
   private readonly _systemPreferences: Map<string, Map<string, string>> = new Map();
   private readonly _userPreferences: Map<string, Map<string, string>> = new Map();
-  private readonly _preferences: Map<string, Map<string, string>> = new Map();
-  private _username: string = '';
+  private username: string = '';
 
-  constructor(preferencesSchema: IPrefrencesSchema[], username: string) {
-    this._username = username;
-
-    preferencesSchema?.forEach((p) => {
-      const section = p?.sectionName;
-
-      if (!section) return;
-
-      const value = p.value;
-
-      if (!value) return;
-
-      const splitValue = value.split(' ').filter((v) => !!v);
-
-      const preferenceMap = new Map<string, string>();
-
-      splitValue.forEach((s) => {
-        const preference = s.split('=').filter((v) => !!v);
-        const preferenceValue = preference[1];
-        const preferenceKey = preference[0];
-
-        if (preferenceValue && preferenceKey) {
-          if (p.username) {
-            this._userPreferences.set(section, preferenceMap.set(preferenceKey, preferenceValue));
-          } else {
-            this._systemPreferences.set(section, preferenceMap.set(preferenceKey, preferenceValue));
-          }
-        }
-      });
-    });
+  constructor(username: string) {
+    this.username = username;
   }
 
   public get enableDarkTheme() {
@@ -55,7 +25,7 @@ export default class Preferences {
   }
 
   public set enableDarkTheme(value: boolean) {
-    this.setUserPreferences<boolean>(SectionName._preferncesSection, SectionKey._darkTheme, value);
+    this.setUserPreferences<boolean>(SectionName._preferences, SectionKey._darkTheme, value);
   }
 
   public get languageCode() {
@@ -63,81 +33,95 @@ export default class Preferences {
   }
 
   public set languageCode(value: string) {
-    this.setUserPreferences<string>(SectionName._preferncesSection, SectionKey._languageCode, value);
-  }
-
-  public toJson() {
-    return {
-      enableDarkTheme: this.enableDarkTheme,
-      languageCode: this.languageCode
-    };
+    this.setUserPreferences<string>(SectionName._preferences, SectionKey._languageCode, value);
   }
 
   public async update() {
-    if (this._preferences.size) {
-      const y = Array.from(this._preferences.entries()).flat();
-      const sectionName = y[0] as string;
-      const v = y[1] as Map<string, string>;
-      const x = v?.entries();
-      if (x) {
-        const value = Array.from(x)
-          .flatMap((x) => x.join('='))
-          .join(' ');
+    await this.updateUserPreferences();
+    await this.updateSystemPreferences();
+  }
 
-        const preference = {
-          sectionName,
-          username: this._username,
-          value
-        };
+  private async updateUserPreferences() {
+    if (this._userPreferences.size) {
+      await this.updatePreferences(this._userPreferences, false);
+    }
+  }
 
-        if (this.isNew) {
-          preferencesSchema.create(preference);
-        } else {
-          preferencesSchema.updateOne(
-            {
-              sectionName: SectionName._preferncesSection
-            },
-            preference
-          );
-        }
+  private async updateSystemPreferences() {
+    if (this._systemPreferences.size) {
+      await this.updatePreferences(this._systemPreferences, true);
+    }
+  }
+
+  private async updatePreferences(preferences: Map<string, Map<string, string>>, systemPreference: boolean) {
+    const sections = Array.from(preferences.entries()).flat();
+    const sectionName = sections[0] as string;
+    const keyValuePair = sections[1] as Map<string, string>;
+    if (keyValuePair) {
+      const entries = keyValuePair.entries();
+      const value = Array.from(entries)
+        .flatMap((x) => x.join('='))
+        .join(' ');
+
+      const username = systemPreference ? '' : this.username;
+
+      const filter = {
+        sectionName,
+        username
+      };
+
+      const isExists = await PreferencesDAL.checkPreferenceExists(filter);
+
+      const preference = {
+        sectionName,
+        username,
+        value
+      } as IPrefrencesSchema;
+
+      if (isExists) {
+        await PreferencesDAL.updatePreference(filter, preference);
+      } else {
+        await PreferencesDAL.createPreference(preference);
       }
     }
   }
 
-  private async create() {}
-
   private async getUserPreferences<T>(section: string, key: string, defaultValue: T) {
-    return await this.getPreferences<T>(section, key, defaultValue, this._username);
+    return await this.getPreferences<T>(section, key, defaultValue, this.username);
   }
 
   private setUserPreferences<T>(section: string, key: string, value: T) {
-    this.setPreferences<T>(section, key, value, this._username);
+    this.setPreferences<T>(section, key, value, this.username);
   }
 
   private getSystemPreferences<T>(section: string, key: string, defaultValue: T) {
     return this.getPreferences<T>(section, key, defaultValue, '');
   }
 
-  public async readPrefrences(sectionName: string): Promise<IPrefrencesSchema> {
-    return await PreferencesDAL.getLeanPreference(this._username, sectionName);
+  public async readPreference(sectionName: string, username: string): Promise<IPrefrencesSchema> {
+    return await PreferencesDAL.getLeanPreference(username, sectionName);
   }
 
   private async getPreferences<T>(section: string, key: string, defaultValue: T, username: string) {
-    if (!this._preferences.has(section)) {
-      const preferenceSchema = await this.readPrefrences(section);
-      if (!preferenceSchema) {
+    const _preferences = username ? this._userPreferences : this._systemPreferences;
+
+    if (!_preferences.has(section)) {
+      const preference = await this.readPreference(section, username);
+
+      if (!preference) {
         return defaultValue;
       }
-      this.setPreferences(section, key, preferenceSchema.value, username);
+
+      this.loadPreference(section, preference.value, username);
     }
 
-    const preference = this._preferences.get(section);
+    const keyValuePair = _preferences.get(section);
 
-    if (!preference?.has(key)) {
+    if (!keyValuePair?.has(key)) {
       return defaultValue;
     }
 
-    const value = preference.get(key);
+    const value = keyValuePair.get(key);
 
     if (!value) {
       return defaultValue;
@@ -147,17 +131,35 @@ export default class Preferences {
       return value;
     }
 
-    return JSON.parse(value as string);
+    return JSON.parse(value as string) as T;
   }
 
-  private setPreferences<T>(section: string, key: string, value: T, username: string) {
-    if (!this._preferences.has(section)) {
-      this.isNew = true;
-      this._preferences.set(section, new Map<string, string>([[key, value as unknown as string]]));
+  private loadPreference(section: string, value: string, username: string): void {
+    const _preferences = username ? this._userPreferences : this._systemPreferences;
+
+    if (value) {
+      const keyValuePair = new Map<string, string>();
+      const lines = value.split(' ').filter((x) => !!x);
+
+      lines.forEach((v) => {
+        const parts = v.split('=', 2).filter((x) => !!x);
+        if (parts.length === 2) {
+          keyValuePair.set(parts[0], parts[1]);
+        }
+      });
+
+      _preferences.set(section, keyValuePair);
+    }
+  }
+
+  private setPreferences<T>(section: string, key: string, value: T, username: string): void {
+    const _preferences = username ? this._userPreferences : this._systemPreferences;
+    if (!_preferences.has(section)) {
+      _preferences.set(section, new Map<string, string>([[key, value as unknown as string]]));
     } else {
-      const preference = this._preferences.get(section);
-      if (preference) {
-        this._preferences.set(section, preference.set(key, value as unknown as string));
+      const keyValuePair = _preferences.get(section);
+      if (keyValuePair) {
+        _preferences.set(section, keyValuePair.set(key, value as unknown as string));
       }
     }
   }

@@ -7,24 +7,22 @@ export default class PreferencesDAL {
   }
 
   public static async getPreference(username: string, sectionName: string) {
-    return preferencesSchema.findOne({ username, sectionName });
+    return await preferencesSchema.findOne({ username, sectionName });
   }
 
   public static async getLeanPreference(username: string, sectionName: string): Promise<IPrefrencesSchema> {
-    return preferencesSchema.findOne({ username, sectionName }).lean();
+    return await preferencesSchema.findOne({ username, sectionName }).lean();
   }
 
   public static async createPreference(preferenceSchema: IPrefrencesSchema) {
-    preferencesSchema.create(preferenceSchema);
+    await preferencesSchema.create(preferenceSchema);
   }
 
   public static async checkPreferenceExists(filter: any) {
-    return preferencesSchema.exists(filter);
+    return await preferencesSchema.exists(filter);
   }
 
   public static async updatePreference(filter: any, update: IPrefrencesSchema) {
-    preferencesSchema.updateOne(filter, update);
+    await preferencesSchema.updateOne(filter, update);
   }
-
-  public static async setPreferences() {}
 }

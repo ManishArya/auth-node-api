@@ -1,17 +1,8 @@
 import PreferencesDAL from '../data-access/preferences.dal';
-import IPreferences from '../models/IPreferences';
+import IPreferences from './IPreferences';
 import IPrefrencesSchema from './IPreferences-schema';
 
-class SectionName {
-  public static readonly _preferences = 'preferences';
-}
-
-class SectionKey {
-  public static readonly _darkTheme = 'darkTheme';
-  public static readonly _languageCode = 'languageCode';
-}
-
-export default class Preferences implements IPreferences {
+export default class PreferencesManager {
   private readonly _systemPreferences: Map<string, Map<string, string>> = new Map();
   private readonly _userPreferences: Map<string, Map<string, string>> = new Map();
   private username: string = '';
@@ -20,20 +11,16 @@ export default class Preferences implements IPreferences {
     this.username = username;
   }
 
-  public get enableDarkTheme() {
-    return false;
+  public async getUserPreferences<T>(section: string, key: keyof IPreferences, defaultValue: T): Promise<T> {
+    return await this.getPreferences<T>(section, key, defaultValue, this.username);
   }
 
-  public set enableDarkTheme(value: boolean) {
-    this.setUserPreferences<boolean>(SectionName._preferences, SectionKey._darkTheme, value);
+  public async setUserPreferences<T>(section: string, key: keyof IPreferences, value: T) {
+    this.setPreferences<T>(section, key, value, this.username);
   }
 
-  public get languageCode() {
-    return '';
-  }
-
-  public set languageCode(value: string) {
-    this.setUserPreferences<string>(SectionName._preferences, SectionKey._languageCode, value);
+  public getSystemPreferences<T>(section: string, key: string, defaultValue: T) {
+    return this.getPreferences<T>(section, key, defaultValue, '');
   }
 
   public async update() {
@@ -57,6 +44,7 @@ export default class Preferences implements IPreferences {
     const sections = Array.from(preferences.entries()).flat();
     const sectionName = sections[0] as string;
     const keyValuePair = sections[1] as Map<string, string>;
+
     if (keyValuePair) {
       const entries = keyValuePair.entries();
       const value = Array.from(entries)
@@ -86,23 +74,11 @@ export default class Preferences implements IPreferences {
     }
   }
 
-  private async getUserPreferences<T>(section: string, key: string, defaultValue: T) {
-    return await this.getPreferences<T>(section, key, defaultValue, this.username);
-  }
-
-  private setUserPreferences<T>(section: string, key: string, value: T) {
-    this.setPreferences<T>(section, key, value, this.username);
-  }
-
-  private getSystemPreferences<T>(section: string, key: string, defaultValue: T) {
-    return this.getPreferences<T>(section, key, defaultValue, '');
-  }
-
-  public async readPreference(sectionName: string, username: string): Promise<IPrefrencesSchema> {
+  private async readPreference(sectionName: string, username: string): Promise<IPrefrencesSchema> {
     return await PreferencesDAL.getLeanPreference(username, sectionName);
   }
 
-  private async getPreferences<T>(section: string, key: string, defaultValue: T, username: string) {
+  private async getPreferences<T>(section: string, key: string, defaultValue: T, username: string): Promise<T> {
     const _preferences = username ? this._userPreferences : this._systemPreferences;
 
     if (!_preferences.has(section)) {
@@ -128,7 +104,7 @@ export default class Preferences implements IPreferences {
     }
 
     if (typeof defaultValue === 'string') {
-      return value;
+      return value as unknown as T;
     }
 
     return JSON.parse(value as string) as T;
@@ -152,7 +128,7 @@ export default class Preferences implements IPreferences {
     }
   }
 
-  private setPreferences<T>(section: string, key: string, value: T, username: string): void {
+  private async setPreferences<T>(section: string, key: string, value: T, username: string): Promise<void> {
     const _preferences = username ? this._userPreferences : this._systemPreferences;
     if (!_preferences.has(section)) {
       _preferences.set(section, new Map<string, string>([[key, value as unknown as string]]));

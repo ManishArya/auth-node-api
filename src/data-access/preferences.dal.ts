@@ -1,9 +1,9 @@
 import IPrefrencesSchema from '../models/IPreferences-schema';
-import { default as preferencesSchema, default as PreferencesSchema } from '../models/preferences-schema';
+import { default as preferencesSchema } from '../models/preferences-schema';
 
 export default class PreferencesDAL {
   public static async getPreferences(username: string): Promise<IPrefrencesSchema[]> {
-    return await PreferencesSchema.find({ $or: [{ username }, { username: '' }] }).lean();
+    return await preferencesSchema.find({ $or: [{ username }, { username: '' }] }).lean();
   }
 
   public static async getPreference(username: string, sectionName: string) {
@@ -24,5 +24,10 @@ export default class PreferencesDAL {
 
   public static async updatePreference(filter: any, update: IPrefrencesSchema) {
     await preferencesSchema.updateOne(filter, update);
+  }
+
+  public static async savePreference(preference: IPrefrencesSchema) {
+    const newPreferenceSchema = new preferencesSchema(preference);
+    await newPreferenceSchema.save();
   }
 }

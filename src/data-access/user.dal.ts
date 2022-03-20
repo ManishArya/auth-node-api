@@ -31,7 +31,7 @@ export default class UserDal {
     return await User.findOneAndDelete({ username });
   }
 
-  public static async checkUserExists(filterQuery: any): Promise<boolean> {
-    return await User.exists(filterQuery);
+  public static async checkUserExists(filter: any): Promise<boolean> {
+    return await User.exists(filter);
   }
 }

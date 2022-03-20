@@ -2,6 +2,17 @@ import PreferencesDAL from '../data-access/preferences.dal';
 import IPreferences from './IPreferences';
 import IPrefrencesSchema from './IPreferences-schema';
 
+class SectionName {
+  public readonly _preferences = 'preferences';
+}
+
+class SectionKey {
+  public readonly _darkTheme = 'darkTheme';
+  public readonly _language = 'language';
+}
+
+type ValueOf<T> = T[keyof T];
+
 export default class PreferencesManager {
   private readonly _systemPreferences: Map<string, Map<string, string>> = new Map();
   private readonly _userPreferences: Map<string, Map<string, string>> = new Map();
@@ -11,12 +22,28 @@ export default class PreferencesManager {
     this.username = username;
   }
 
-  public async getUserPreferences<T>(section: string, key: keyof IPreferences, defaultValue: T): Promise<T> {
+  public async getUserPreferencesBySection<T>(section: ValueOf<SectionName>): Promise<T> {
+    switch (section) {
+      case 'preferences':
+        return {
+          enableDarkTheme: await this.getUserPreferences<boolean>('preferences', 'darkTheme', false),
+          languageCode: await this.getUserPreferences<string>('preferences', 'language', 'en-us')
+        } as IPreferences as unknown as T;
+      default:
+        return {} as T;
+    }
+  }
+
+  public async getUserPreferences<T>(
+    section: ValueOf<SectionName>,
+    key: ValueOf<SectionKey>,
+    defaultValue: T
+  ): Promise<T> {
     return await this.getPreferences<T>(section, key, defaultValue, this.username);
   }
 
-  public async setUserPreferences<T>(section: string, key: keyof IPreferences, value: T) {
-    this.setPreferences<T>(section, key, value, this.username);
+  public setUserPreferences<T>(section: ValueOf<SectionName>, key: ValueOf<SectionKey>, value: T) {
+    this.setPreferences<T>(section.valueOf(), key.valueOf(), value, this.username);
   }
 
   public getSystemPreferences<T>(section: string, key: string, defaultValue: T) {
@@ -128,7 +155,7 @@ export default class PreferencesManager {
     }
   }
 
-  private async setPreferences<T>(section: string, key: string, value: T, username: string): Promise<void> {
+  private setPreferences<T>(section: string, key: string, value: T, username: string): void {
     const _preferences = username ? this._userPreferences : this._systemPreferences;
     if (!_preferences.has(section)) {
       _preferences.set(section, new Map<string, string>([[key, value as unknown as string]]));

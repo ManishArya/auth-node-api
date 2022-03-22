@@ -7,6 +7,7 @@ import AuthService from '../services/auth.service';
 import UserService from '../services/user.service';
 import upload from '../utils/image-uploader';
 import logger from '../utils/logger';
+import MagicNumberUtility from '../utils/magic-number/magic-number-utility';
 import BaseController from './base.controller';
 const router = express.Router();
 
@@ -85,13 +86,21 @@ router.put('/updateEmailAddress', verifyJwtToken, async (req: any, res) => {
 
 router.put('/uploadAvatar', verifyJwtToken, upload().single('avatar'), async (req: any, res) => {
   UserService.currentUser = req.currentUser;
-  const avatar = req.file?.buffer;
-  if (!avatar) {
+  const avatar = req.file as Express.Multer.File;
+  const fileBytes = avatar?.buffer;
+  if (!fileBytes) {
     return BaseController.sendResponse(res, new ApiResponse('No avatar', STATUS_CODE_BAD_REQUEST));
   }
   try {
     logger.info(`User.UploadAvatar beginning ${req.path}`);
-    const result = await UserService.updateAvatar(avatar);
+
+    const m = new MagicNumberUtility(fileBytes, avatar.mimetype);
+
+    if (!m.isImageType) {
+      throw new Error('File contents don’t match the file extension');
+    }
+
+    const result = await UserService.updateAvatar(fileBytes);
     logger.info(`User.UploadAvatar returning`);
     return BaseController.sendResponse(res, result);
   } catch (error) {

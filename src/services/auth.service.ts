@@ -5,6 +5,7 @@ import UserDal from '../data-access/user.dal';
 import { LoginResponseCode } from '../enums/login-response-code.enum';
 import ApiResponse from '../models/api-response';
 import AuthResponse from '../models/auth-response';
+import { InvalidOperationException } from '../models/Invalid-operation-exception';
 import IUser from '../models/IUser';
 import UserInfo from '../models/user-info';
 import JwtHelper from '../utils/jwt-helper';
@@ -78,9 +79,9 @@ export default class AuthService {
         await mail.send();
         return new ApiResponse('Password Changed Successfully', STATUS_CODE_SUCCESS);
       }
-      return new ApiResponse('This password is one of recent changed password', STATUS_CODE_BAD_REQUEST);
+      throw new InvalidOperationException('This password is one of recent changed password');
     }
-    return new ApiResponse('Current password can not be same as old password', STATUS_CODE_BAD_REQUEST);
+    throw new InvalidOperationException('Current password can not be same as old password');
   }
 
   private static async checkPasswordIsInHistory(username: string, password: string): Promise<boolean> {

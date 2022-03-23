@@ -1,8 +1,8 @@
 import express from 'express';
-import { STATUS_CODE_BAD_REQUEST } from '../constants/status-code.const';
 import recaptchVerify from '../middlewares/recaptch-verify';
 import verifyJwtToken from '../middlewares/verify-jwt-token';
 import ApiResponse from '../models/api-response';
+import { InvalidOperationException } from '../models/Invalid-operation-exception';
 import AuthService from '../services/auth.service';
 import UserService from '../services/user.service';
 import upload from '../utils/image-uploader';
@@ -23,26 +23,6 @@ router.post('/', recaptchVerify, async (req, res) => {
     return BaseController.ToError(res, error);
   }
 });
-
-/**
- * @openapi
- *  /user/:
- *  put:
- *    security:
- *      - bearerAuth: []
- *    description: 'Update User Profile'
- *    tags: [User API]
- *    requestBody:
- *      content:
- *        application/json:
- *          schema:
- *            $ref: '#/components/schemas/UpdateModel'
- *    responses:
- *      200:
- *        description: User Profile Updated
- *      500:
- *        $ref: '#/components/responses/500'
- */
 
 router.put('/', verifyJwtToken, async (req: any, res) => {
   try {
@@ -88,16 +68,18 @@ router.put('/uploadAvatar', verifyJwtToken, upload().single('avatar'), async (re
   UserService.currentUser = req.currentUser;
   const avatar = req.file as Express.Multer.File;
   const fileBytes = avatar?.buffer;
+
   if (!fileBytes) {
-    return BaseController.sendResponse(res, new ApiResponse('No avatar', STATUS_CODE_BAD_REQUEST));
+    throw new InvalidOperationException('File does not have content');
   }
+
   try {
     logger.info(`User.UploadAvatar beginning ${req.path}`);
 
     const m = new MagicNumberUtility(fileBytes, avatar.mimetype);
 
     if (!m.isImageType) {
-      throw new Error('File contents don’t match the file extension');
+      throw new InvalidOperationException('File contents don’t match the file extension');
     }
 
     const result = await UserService.updateAvatar(fileBytes);
@@ -121,21 +103,6 @@ router.delete('/removeAvatar', verifyJwtToken, async (req: any, res) => {
     return BaseController.ToError(res, error);
   }
 });
-
-/**
- * @openapi
- *  /user/:
- *  get:
- *    security:
- *      - bearerAuth: []
- *    description: 'Get User Profile'
- *    tags: [User API]
- *    responses:
- *      200:
- *        description: User Profile
- *      500:
- *        $ref: '#/components/responses/500'
- */
 
 router.get('/', verifyJwtToken, async (req: any, res: any) => {
   try {

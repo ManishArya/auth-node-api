@@ -1,6 +1,7 @@
 import config from 'config';
 import multer from 'multer';
 import path from 'path';
+import { InvalidOperationException } from '../models/Invalid-operation-exception';
 import logger from './logger';
 
 export default () => {
@@ -23,7 +24,7 @@ export default () => {
         `Uploading failed due to mismatch mime type or extension allowed mime is image type only, but uploading file mimeType= ${file.mimetype} & normalized path = ${extension}`
       );
 
-      cb(new Error(`You can upload only these image types - ${validImageTypes}`));
+      cb(new InvalidOperationException(`You can upload only these image types - ${validImageTypes}`));
     }
   });
 };

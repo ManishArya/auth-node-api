@@ -1,10 +1,11 @@
 import express from 'express';
-import { STATUS_CODE_BAD_REQUEST, STATUS_CODE_SUCCESS } from '../constants/status-code.const';
+import { STATUS_CODE_SUCCESS } from '../constants/status-code.const';
 import recaptchVerify from '../middlewares/recaptch-verify';
 import verifyJwtToken from '../middlewares/verify-jwt-token';
 import ApiResponse from '../models/api-response';
 import AuthResponse from '../models/auth-response';
 import ILogin from '../models/ILogin';
+import { InvalidOperationException } from '../models/Invalid-operation-exception';
 import AuthService from '../services/auth.service';
 import logger from '../utils/logger';
 import BaseController from './base.controller';
@@ -132,10 +133,7 @@ router.post('/changePassword', verifyJwtToken, async (req, res) => {
     const { password, confirmPassword, oldPassword } = req.body;
 
     if (password?.localeCompare(confirmPassword) !== 0) {
-      return BaseController.sendResponse(
-        res,
-        new ApiResponse('password and confirm password does not match !!!', STATUS_CODE_BAD_REQUEST)
-      );
+      throw new InvalidOperationException('password and confirm password does not match !!!');
     }
 
     let result: ApiResponse;

@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { STATUS_CODE_GENERIC_ERROR, STATUS_CODE_UNPROCESSING } from '../constants/status-code.const';
 import { LoginResponseCode } from '../enums/login-response-code.enum';
 import ApiResponse from '../models/api-response';
+import { InvalidOperationException } from '../models/Invalid-operation-exception';
 
 export default abstract class BaseController {
   public static sendResponse(res: Response, apiResponse: ApiResponse, code?: LoginResponseCode) {
@@ -10,7 +11,7 @@ export default abstract class BaseController {
   }
 
   public static ToError(res: Response, error?: any) {
-    let apiResponse = new ApiResponse(
+    const apiResponse = new ApiResponse(
       'There is an issue in processing of request. Please try after some time later !!!',
       STATUS_CODE_GENERIC_ERROR
     );
@@ -22,6 +23,7 @@ export default abstract class BaseController {
       keys.forEach((key) => {
         validationsErrors[key] = errors[key].message;
       });
+
       apiResponse.content = validationsErrors;
       apiResponse.statusCode = STATUS_CODE_UNPROCESSING;
     } else if (error?.name === 'MongoError' && error?.code === 11000) {
@@ -29,6 +31,9 @@ export default abstract class BaseController {
       const key = Object.keys(error.keyValue)[0];
       validationsErrors[key] = `${key} is taken`;
       apiResponse.content = validationsErrors;
+    } else if (error instanceof InvalidOperationException) {
+      apiResponse.content = error.message;
+      apiResponse.statusCode = error.statusCode;
     }
     return this.sendResponse(res, apiResponse);
   }

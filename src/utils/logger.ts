@@ -10,7 +10,9 @@ const loggerOption: winston.LoggerOptions = {
           handleExceptions: true,
           maxsize: 5242880
         })
-      : new winston.transports.Console()
+      : new winston.transports.Console({
+          handleExceptions: true
+        })
   ],
   format: winston.format.combine(
     winston.format.timestamp({ format: 'YYYY-MM-DDTHH:mm:ss.SSSSSSSZ' }),

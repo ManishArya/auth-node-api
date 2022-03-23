@@ -101,7 +101,7 @@ export default class PreferencesManager {
     }
   }
 
-  private async readPreference(sectionName: string, username: string): Promise<IPrefrencesSchema> {
+  private async getLeanPreference(sectionName: string, username: string): Promise<IPrefrencesSchema> {
     return await PreferencesDAL.getLeanPreference(username, sectionName);
   }
 
@@ -109,13 +109,13 @@ export default class PreferencesManager {
     const _preferences = username ? this._userPreferences : this._systemPreferences;
 
     if (!_preferences.has(section)) {
-      const preference = await this.readPreference(section, username);
+      const preference = await this.getLeanPreference(section, username);
 
       if (!preference) {
         return defaultValue;
       }
 
-      this.loadPreference(section, preference.value, username);
+      this.setPreferencesMap(section, preference.value, username);
     }
 
     const keyValuePair = _preferences.get(section);
@@ -137,7 +137,7 @@ export default class PreferencesManager {
     return JSON.parse(value as string) as T;
   }
 
-  private loadPreference(section: string, value: string, username: string): void {
+  private setPreferencesMap(section: string, value: string, username: string): void {
     const _preferences = username ? this._userPreferences : this._systemPreferences;
 
     if (value) {

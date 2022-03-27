@@ -5,7 +5,7 @@ import JwtHelper from '../utils/jwt-helper';
 import { Mail } from '../utils/mail';
 
 export default class UserService {
-  public static currentUser: any;
+  public static currentUsername: string;
 
   public static async saveUser(userData: any) {
     const user = await UserDal.saveUser(userData);
@@ -31,13 +31,13 @@ export default class UserService {
   }
 
   public static async getProfile() {
-    const username = this.currentUser.username;
+    const username = this.currentUsername;
     const user = await UserDal.getUserByUsername(username);
     return new ApiResponse(user?.toObject());
   }
 
   private static async updateUser(data: any) {
-    const { username } = this.currentUser;
+    const username = this.currentUsername;
     data.lastUpdatedBy = username?.toLowerCase();
 
     const user = await UserDal.updateUser({ username }, data);

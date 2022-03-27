@@ -1,4 +1,5 @@
 import PreferencesDAL from '../data-access/preferences.dal';
+import { IPreferenceManager } from './IPreferenceManager';
 import IPreferences from './IPreferences';
 import IPrefrencesSchema from './IPreferences-schema';
 
@@ -8,12 +9,12 @@ class SectionName {
 
 class SectionKey {
   public readonly _darkTheme = 'darkTheme';
-  public readonly _language = 'language';
+  public readonly _locale = 'locale';
 }
 
 type ValueOf<T> = T[keyof T];
 
-export default class PreferencesManager {
+export default class PreferencesManager implements IPreferenceManager {
   private readonly _systemPreferences: Map<string, Map<string, string>> = new Map();
   private readonly _userPreferences: Map<string, Map<string, string>> = new Map();
   private username: string = '';
@@ -26,15 +27,23 @@ export default class PreferencesManager {
     switch (section) {
       case 'preferences':
         return {
-          enableDarkTheme: await this.getUserPreferences<boolean>('preferences', 'darkTheme', false),
-          languageCode: await this.getUserPreferences<string>('preferences', 'language', 'en-us')
+          enableDarkTheme: await this.getDarkTheme(),
+          locale: await this.getUserLocale()
         } as IPreferences as unknown as T;
       default:
         return {} as T;
     }
   }
 
-  public async getUserPreferences<T>(
+  public async getDarkTheme() {
+    return await this.getUserPreferences<boolean>('preferences', 'darkTheme', false);
+  }
+
+  public async getUserLocale() {
+    return await this.getUserPreferences<string>('preferences', 'locale', 'en');
+  }
+
+  private async getUserPreferences<T>(
     section: ValueOf<SectionName>,
     key: ValueOf<SectionKey>,
     defaultValue: T

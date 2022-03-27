@@ -1,0 +1,16 @@
+{
+  "posterContentCheckValidation": "Poster contents don’t match the file extension.",
+  "posterContentValidation": "poster have no content",
+  "imageValidation": "`You can upload only these image types - {validImageTypes}",
+  "posterSizeValidation": "poster size cannot  more than 1 MB.",
+  "genericErrorMessage": "There is an issue in processing of request. Please try after some time later !!!",
+  "userNotFound": "User not found",
+  "userLocked": "User is locked. Please try after some time later",
+  "forgotPasswordInstruction": "Please check email for further instruction !!!",
+  "userExistFailure": "User does not exists !!!",
+  "recentPasswordChange": "This password is one of recent changed password",
+  "currentOldPassword": "Current password can not be same as old password",
+  "passwordMismatch": "password and confirm password does not match !!!",
+  "oldPasswordWrong": "Old password is wrong !!!",
+  "passwordWrong": "Password is wrong !!!"
+}

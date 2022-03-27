@@ -1,0 +1,15 @@
+{
+  "posterContentCheckValidation": " पोस्टर सामग्री फ़ाइल एक्सटेंशन से मेल नहीं खाती।",
+  "posterContentValidation": " पोस्टर में कोई सामग्री नहीं है।",
+  "imageValidation": "आप केवल इन छवि प्रकारों {validImageTypes} को अपलोड कर सकते हैं|",
+  "posterSizeValidation": "पोस्टर का आकार 1 एमबी से अधिक नहीं हो सकता।",
+  "genericErrorMessage": "अनुरोध के प्रसंस्करण में एक समस्या है। कृपया कुछ समय बाद प्रयास करें !!!",
+  "userNotFound": "उपयोगकर्ता नहीं मिला।",
+  "userLocked": "उपयोगकर्ता बंद है। कृपया कुछ समय बाद प्रयास करें!",
+  "forgotPasswordInstruction": "कृपया आगे के निर्देश के लिए ईमेल देखें !!!",
+  "userExistFailure": "उपयोगकर्ता मौजूद नहीं है !!!",
+  "recentPasswordChange": "यह पासवर्ड हाल ही में बदले गए पासवर्ड में से एक है",
+  "passwordMismatch": "पासवर्ड और पुष्टि पासवर्ड मेल नहीं खाता !!!",
+  "oldPasswordWrong": "पुराना पासवर्ड गलत है !!!",
+  "passwordWrong": "पासवर्ड गलत है !!!"
+}

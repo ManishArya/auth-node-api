@@ -1,8 +1,7 @@
 import config from 'config';
 import multer from 'multer';
 import path from 'path';
-import { InvalidOperationException } from '../models/Invalid-operation-exception';
-import logger from './logger';
+import { LocalizedInvalidOperationException } from '../models/Invalid-operation-exception';
 
 export default () => {
   const storage = multer.memoryStorage();
@@ -20,11 +19,13 @@ export default () => {
         return cb(null, true);
       }
 
-      logger.error(
-        `Uploading failed due to mismatch mime type or extension allowed mime is image type only, but uploading file mimeType= ${file.mimetype} & normalized path = ${extension}`
+      cb(
+        new LocalizedInvalidOperationException(
+          `Uploading failed due to mismatch mime type or extension allowed mime is image type only, but uploading file mimeType= ${file.mimetype} & normalized path = ${extension}`,
+          'imageValidation',
+          { validImageTypes }
+        )
       );
-
-      cb(new InvalidOperationException(`You can upload only these image types - ${validImageTypes}`));
     }
   });
 };

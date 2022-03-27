@@ -1,11 +1,12 @@
 import bcrypt from 'bcrypt';
+import { __ } from 'i18n';
 import { STATUS_CODE_BAD_REQUEST, STATUS_CODE_NOT_FOUND, STATUS_CODE_SUCCESS } from '../constants/status-code.const';
 import PasswordHistoryDAL from '../data-access/password-history.dal';
 import UserDal from '../data-access/user.dal';
 import { LoginResponseCode } from '../enums/login-response-code.enum';
 import ApiResponse from '../models/api-response';
 import AuthResponse from '../models/auth-response';
-import { InvalidOperationException } from '../models/Invalid-operation-exception';
+import { LocalizedInvalidOperationException } from '../models/Invalid-operation-exception';
 import IUser from '../models/IUser';
 import UserInfo from '../models/user-info';
 import JwtHelper from '../utils/jwt-helper';
@@ -22,15 +23,12 @@ export default class AuthService {
     const user = await UserDal.getUser(filter);
 
     if (!user) {
-      return new AuthResponse('User not found', STATUS_CODE_NOT_FOUND, LoginResponseCode.NoUser);
+      errorMessage = __('userNotFound');
+      return new AuthResponse(errorMessage, STATUS_CODE_NOT_FOUND, LoginResponseCode.NoUser);
     }
 
     if (user.isUserLocked) {
-      return new AuthResponse(
-        'User is locked. Please try after some time later',
-        STATUS_CODE_BAD_REQUEST,
-        LoginResponseCode.locked
-      );
+      return new AuthResponse(__('userLocked'), STATUS_CODE_BAD_REQUEST, LoginResponseCode.locked);
     }
 
     const isPasswordValid = await user.isPasswordValid(password);
@@ -58,15 +56,15 @@ export default class AuthService {
         text: ''
       });
       await mail.send();
-      return new ApiResponse('Please check email for further instruction !!!', STATUS_CODE_SUCCESS);
+      return new ApiResponse(__('forgotPasswordInstruction'), STATUS_CODE_SUCCESS);
     }
-    return new ApiResponse('User does not exists !!!', STATUS_CODE_NOT_FOUND);
+    return new ApiResponse(__('userExistFailure'), STATUS_CODE_NOT_FOUND);
   }
 
   public static async changePassword(user: IUser, password: string) {
     const isSame = await user.isOldPasswordSameAsCurrentPassword(password);
     if (!isSame) {
-      const isExists = await this.checkPasswordIsInHistory(user.username, password);
+      const isExists = await this.checkPasswordHistory(user.username, password);
       if (!isExists) {
         await PasswordHistoryDAL.savePassword(user.password, user.username);
         user.password = password;
@@ -79,12 +77,18 @@ export default class AuthService {
         await mail.send();
         return new ApiResponse('Password Changed Successfully', STATUS_CODE_SUCCESS);
       }
-      throw new InvalidOperationException('This password is one of recent changed password');
+      throw new LocalizedInvalidOperationException(
+        'This password is one of recent changed password',
+        'recentPasswordChange'
+      );
     }
-    throw new InvalidOperationException('Current password can not be same as old password');
+    throw new LocalizedInvalidOperationException(
+      'Current password can not be same as old password',
+      'currentOldPassword'
+    );
   }
 
-  private static async checkPasswordIsInHistory(username: string, password: string): Promise<boolean> {
+  private static async checkPasswordHistory(username: string, password: string): Promise<boolean> {
     const passwordHistory: any[] = await PasswordHistoryDAL.getPasswords(username);
     const passwords = passwordHistory.map((p) => p.password);
     for (let i = 0; i < passwords.length; i++) {

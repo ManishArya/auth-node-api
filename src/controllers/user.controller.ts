@@ -2,7 +2,7 @@ import express from 'express';
 import recaptchVerify from '../middlewares/recaptch-verify';
 import verifyJwtToken from '../middlewares/verify-jwt-token';
 import ApiResponse from '../models/api-response';
-import { InvalidOperationException } from '../models/Invalid-operation-exception';
+import { LocalizedInvalidOperationException } from '../models/Invalid-operation-exception';
 import AuthService from '../services/auth.service';
 import UserService from '../services/user.service';
 import upload from '../utils/image-uploader';
@@ -11,7 +11,7 @@ import MagicNumberUtility from '../utils/magic-number/magic-number-utility';
 import BaseController from './base.controller';
 const router = express.Router();
 
-router.post('/', recaptchVerify, async (req, res) => {
+router.post('/', recaptchVerify, async (req, res, next) => {
   try {
     const { username, name, email, password } = req.body;
     logger.info(`User.Newuser beginning ${req.path}`);
@@ -19,35 +19,33 @@ router.post('/', recaptchVerify, async (req, res) => {
     logger.info(`User.NewUser returning`);
     return BaseController.sendResponse(res, result);
   } catch (error) {
-    logger.error(error, error);
-    return BaseController.ToError(res, error);
+    next(error);
   }
 });
 
-router.put('/', verifyJwtToken, async (req: any, res) => {
+router.put('/', verifyJwtToken, async (req, res, next) => {
   try {
-    UserService.currentUser = req.currentUser;
+    UserService.currentUsername = req.currentUsername;
     const { username, name, email, mobile } = req.body;
     logger.info(`User.Edit beginning ${req.path}`);
     const result = await UserService.editProfile({ username, name, email, mobile });
     logger.info(`User.Edit returning`);
     return BaseController.sendResponse(res, result);
   } catch (error) {
-    logger.error(error, error);
-    return BaseController.ToError(res, error);
+    next(error);
   }
 });
 
-router.put('/updateEmailAddress', verifyJwtToken, async (req: any, res) => {
+router.put('/updateEmailAddress', verifyJwtToken, async (req, res, next) => {
   const { password, email } = req.body;
-  UserService.currentUser = req.currentUser;
+  UserService.currentUsername = req.currentUsername;
 
   try {
     logger.info(`User.updateEmailAddress beginning ${req.path}`);
 
     let result: ApiResponse;
-    const filter = { username: UserService.currentUser.username };
-    result = await AuthService.validateUser(filter, password, 'Password is wrong !!!');
+    const filter = { username: req.currentUsername };
+    result = await AuthService.validateUser(filter, password, req.__('passwordWrong'));
 
     if (!result.isSuccess) {
       return BaseController.sendResponse(res, new ApiResponse({ password: result.content }, result.statusCode));
@@ -59,18 +57,17 @@ router.put('/updateEmailAddress', verifyJwtToken, async (req: any, res) => {
 
     return BaseController.sendResponse(res, result);
   } catch (error) {
-    logger.error(error, error);
-    return BaseController.ToError(res, error);
+    next(error);
   }
 });
 
-router.put('/uploadAvatar', verifyJwtToken, upload().single('avatar'), async (req: any, res) => {
-  UserService.currentUser = req.currentUser;
+router.put('/uploadAvatar', verifyJwtToken, upload().single('avatar'), async (req, res, next) => {
+  UserService.currentUsername = req.currentUsername;
   const avatar = req.file as Express.Multer.File;
   const fileBytes = avatar?.buffer;
 
   if (!fileBytes) {
-    throw new InvalidOperationException('File does not have content');
+    throw new LocalizedInvalidOperationException('poster have no content', 'posterContentValidation');
   }
 
   try {
@@ -79,41 +76,41 @@ router.put('/uploadAvatar', verifyJwtToken, upload().single('avatar'), async (re
     const m = new MagicNumberUtility(fileBytes, avatar.mimetype);
 
     if (!m.isImageType) {
-      throw new InvalidOperationException('File contents don’t match the file extension');
+      throw new LocalizedInvalidOperationException(
+        'Poster contents don’t match the file extension.',
+        'posterContentCheckValidation'
+      );
     }
 
     const result = await UserService.updateAvatar(fileBytes);
     logger.info(`User.UploadAvatar returning`);
     return BaseController.sendResponse(res, result);
   } catch (error) {
-    logger.error(error, error);
-    return BaseController.ToError(res, error);
+    next(error);
   }
 });
 
-router.delete('/removeAvatar', verifyJwtToken, async (req: any, res) => {
-  UserService.currentUser = req.currentUser;
+router.delete('/removeAvatar', verifyJwtToken, async (req, res, next) => {
+  UserService.currentUsername = req.currentUsername;
   try {
     logger.info(`User.RemoveAvatar beginning ${req.path}`);
     const result = await UserService.updateAvatar();
     logger.info(`User.RemoveAvatar returning`);
     return BaseController.sendResponse(res, result);
   } catch (error) {
-    logger.error(error, error);
-    return BaseController.ToError(res, error);
+    next(error);
   }
 });
 
-router.get('/', verifyJwtToken, async (req: any, res: any) => {
+router.get('/', verifyJwtToken, async (req, res, next) => {
   try {
-    UserService.currentUser = req.currentUser;
+    UserService.currentUsername = req.currentUsername;
     logger.info(`User.GetProfile beginning ${req.path}`);
     const profile = await UserService.getProfile();
     logger.info(`User.GetProfile returning`);
     return BaseController.sendResponse(res, profile);
   } catch (error) {
-    logger.error(error, error);
-    return BaseController.ToError(res, error);
+    next(error);
   }
 });
 

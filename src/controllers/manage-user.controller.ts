@@ -3,7 +3,7 @@ import { STATUS_CODE_SUCCESS } from '../constants/status-code.const';
 import verifyJwtToken from '../middlewares/verify-jwt-token';
 import ApiResponse from '../models/api-response';
 import AuthService from '../services/auth.service';
-import ManageUserService from '../services/manage-user.service';
+import UserService from '../services/user.service';
 import logger from '../utils/logger';
 import BaseController from './base.controller';
 const router = express.Router();
@@ -28,15 +28,11 @@ const router = express.Router();
  *        $ref: '#/components/responses/500'
  */
 
-router.get('/all', verifyJwtToken, async (req, res, next) => {
-  try {
-    logger.info(`${router.name}.All beginning ${req.path}`);
-    const response = await ManageUserService.getUsers();
-    logger.info(`ManageUser.All returning`);
-    return BaseController.sendResponse(res, response);
-  } catch (error) {
-    next(error);
-  }
+router.get('/all', verifyJwtToken, async (req, res) => {
+  logger.info(`${router.name}.All beginning ${req.path}`);
+  const response = await UserService.getUsers();
+  logger.info(`ManageUser.All returning`);
+  return BaseController.sendResponse(res, response);
 });
 
 /**
@@ -58,37 +54,29 @@ router.get('/all', verifyJwtToken, async (req, res, next) => {
  *        $ref: '#/components/responses/500'
  */
 
-router.delete('/:username?', verifyJwtToken, async (req, res, next) => {
-  try {
-    const username = req.params.username ?? req.currentUsername;
-    logger.info(`ManageUser.Delete beginning ${req.path} ${req.route}`);
-    const result = await ManageUserService.deleteUser(username);
-    logger.info(`ManageUser.Delete returning`);
-    return BaseController.sendResponse(res, result);
-  } catch (error) {
-    next(error);
-  }
+router.delete('/:username?', verifyJwtToken, async (req, res) => {
+  const username = req.params.username ?? req.currentUsername;
+  logger.info(`ManageUser.Delete beginning ${req.path} ${req.route}`);
+  const result = await UserService.deleteUser(username);
+  logger.info(`ManageUser.Delete returning`);
+  return BaseController.sendResponse(res, result);
 });
 
-router.post('/deleteUserAccount', verifyJwtToken, async (req, res, next) => {
-  try {
-    const password = req.body.password;
-    const username = req.currentUsername;
-    logger.info(`ManageUser.DeleteUserAccount beginning ${req.path}`);
+router.post('/deleteUserAccount', verifyJwtToken, async (req, res) => {
+  const password = req.body.password;
+  const username = req.currentUsername;
+  logger.info(`ManageUser.DeleteUserAccount beginning ${req.path}`);
 
-    let result: ApiResponse;
-    const filter = { username };
-    result = await AuthService.validateUser(filter, password, req.__('passwordWrong'));
+  let result: ApiResponse;
+  const filter = { username };
+  result = await AuthService.validateUser(filter, password, req.__('passwordWrong'));
 
-    if (result.statusCode === STATUS_CODE_SUCCESS) {
-      result = await ManageUserService.deleteUser(username);
-    }
-
-    logger.info(`ManageUser.DeleteUserAccount returning`);
-    return BaseController.sendResponse(res, result);
-  } catch (error) {
-    next(error);
+  if (result.statusCode === STATUS_CODE_SUCCESS) {
+    result = await UserService.deleteUser(username);
   }
+
+  logger.info(`ManageUser.DeleteUserAccount returning`);
+  return BaseController.sendResponse(res, result);
 });
 
 export default router;

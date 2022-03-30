@@ -1,4 +1,4 @@
-import { STATUS_CODE_NOT_FOUND } from '../constants/status-code.const';
+import { STATUS_CODE_NOCONTENT, STATUS_CODE_NOT_FOUND } from '../constants/status-code.const';
 import UserDal from '../data-access/user.dal';
 import ApiResponse from '../models/api-response';
 import JwtHelper from '../utils/jwt-helper';
@@ -34,6 +34,17 @@ export default class UserService {
     const username = this.currentUsername;
     const user = await UserDal.getUserByUsername(username);
     return new ApiResponse(user?.toObject());
+  }
+
+  public static async getUsers() {
+    let users = await UserDal.getUsers();
+    users = users.map((u: any) => u.toObject());
+    return new ApiResponse(users);
+  }
+
+  public static async deleteUser(username: string) {
+    await UserDal.deleteUser(username);
+    return new ApiResponse('User Deleted Successfully', STATUS_CODE_NOCONTENT);
   }
 
   private static async updateUser(data: any) {

@@ -48,24 +48,20 @@ const router = express.Router();
  *        $ref: '#/components/responses/500'
  */
 
-router.post('/token', recaptchVerify, async (req, res, next) => {
-  try {
-    const { usernameOrEmail, password } = req.body as ILogin;
-    logger.info(`Auth.Token beginning ${req.path}`);
-    let result: ApiResponse;
-    const filter = { $or: [{ username: usernameOrEmail }, { email: usernameOrEmail }] };
-    result = await AuthService.validateUser(filter, password);
-    const loginResponseCode = (result as AuthResponse).code;
-    if (result.statusCode === STATUS_CODE_SUCCESS) {
-      const user = result.content;
-      result = await AuthService.generateToken(user);
-    }
-
-    logger.info(`Auth.Token returning`);
-    return BaseController.sendResponse(res, result, loginResponseCode);
-  } catch (error) {
-    next(error);
+router.post('/token', recaptchVerify, async (req, res) => {
+  const { usernameOrEmail, password } = req.body as ILogin;
+  logger.info(`Auth.Token beginning ${req.path}`);
+  let result: ApiResponse;
+  const filter = { $or: [{ username: usernameOrEmail }, { email: usernameOrEmail }] };
+  result = await AuthService.validateUser(filter, password);
+  const loginResponseCode = (result as AuthResponse).code;
+  if (result.statusCode === STATUS_CODE_SUCCESS) {
+    const user = result.content;
+    result = await AuthService.generateToken(user);
   }
+
+  logger.info(`Auth.Token returning`);
+  return BaseController.sendResponse(res, result, loginResponseCode);
 });
 
 /**
@@ -92,16 +88,12 @@ router.post('/token', recaptchVerify, async (req, res, next) => {
  *        $ref: '#/components/responses/500'
  */
 
-router.post('/forgetPassword', recaptchVerify, async (req, res, next) => {
-  try {
-    const { usernameOrEmail } = req.body;
-    logger.info(`Auth.ForgetPassword beginning ${req.path}`);
-    const result = await AuthService.sendResetPasswordLink(usernameOrEmail);
-    logger.info(`Auth.ForgetPassword returning`);
-    return BaseController.sendResponse(res, result);
-  } catch (error) {
-    next(error);
-  }
+router.post('/forgetPassword', recaptchVerify, async (req, res) => {
+  const { usernameOrEmail } = req.body;
+  logger.info(`Auth.ForgetPassword beginning ${req.path}`);
+  const result = await AuthService.sendResetPasswordLink(usernameOrEmail);
+  logger.info(`Auth.ForgetPassword returning`);
+  return BaseController.sendResponse(res, result);
 });
 
 /**
@@ -124,33 +116,29 @@ router.post('/forgetPassword', recaptchVerify, async (req, res, next) => {
  *        $ref: '#/components/responses/500'
  */
 
-router.post('/changePassword', verifyJwtToken, async (req, res, next) => {
-  try {
-    logger.info(`Auth.ChangePassword beginning ${req.path}`);
-    const currentUsername = req.currentUsername;
-    const { password, confirmPassword, oldPassword } = req.body;
+router.post('/changePassword', verifyJwtToken, async (req, res) => {
+  logger.info(`Auth.ChangePassword beginning ${req.path}`);
+  const currentUsername = req.currentUsername;
+  const { password, confirmPassword, oldPassword } = req.body;
 
-    if (password?.localeCompare(confirmPassword) !== 0) {
-      throw new LocalizedInvalidOperationException(
-        'password and confirm password does not match !!!',
-        'passwordMismatch'
-      );
-    }
-
-    let result: ApiResponse;
-    const filter = { username: currentUsername };
-    result = await AuthService.validateUser(filter, oldPassword, req.__('oldPasswordWrong'));
-
-    if (result.statusCode === STATUS_CODE_SUCCESS) {
-      const user = result.content;
-      result = await AuthService.changePassword(user, password);
-    }
-
-    logger.info(`Auth.ChangePassword returning`);
-    return BaseController.sendResponse(res, result);
-  } catch (error) {
-    next(error);
+  if (password?.localeCompare(confirmPassword) !== 0) {
+    throw new LocalizedInvalidOperationException(
+      'password and confirm password does not match !!!',
+      'passwordMismatch'
+    );
   }
+
+  let result: ApiResponse;
+  const filter = { username: currentUsername };
+  result = await AuthService.validateUser(filter, oldPassword, req.__('oldPasswordWrong'));
+
+  if (result.statusCode === STATUS_CODE_SUCCESS) {
+    const user = result.content;
+    result = await AuthService.changePassword(user, password);
+  }
+
+  logger.info(`Auth.ChangePassword returning`);
+  return BaseController.sendResponse(res, result);
 });
 
 export default router;

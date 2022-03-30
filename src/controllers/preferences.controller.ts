@@ -7,46 +7,34 @@ import BaseController from './base.controller';
 
 const router = express.Router();
 
-router.get('/', verifyJwtToken, async (req, res, next) => {
-  try {
-    logger.info(`Preferences.Get beginning ${req.path}`);
+router.get('/', verifyJwtToken, async (req, res) => {
+  logger.info(`Preferences.Get beginning ${req.path}`);
 
-    PreferencesService.currentUsername = req.currentUsername;
-    const response = await PreferencesService.getPreferences();
+  PreferencesService.currentUsername = req.currentUsername;
+  const response = await PreferencesService.getPreferences();
 
-    logger.info(`Preferences.Get returning`);
+  logger.info(`Preferences.Get returning`);
 
-    return BaseController.sendResponse(res, response);
-  } catch (error) {
-    next(error);
-  }
+  return BaseController.sendResponse(res, response);
 });
 
-router.post('/', verifyJwtToken, async (req, res, next) => {
-  try {
-    logger.info(`Preferences.Post begining ${req.path}`);
+router.post('/', verifyJwtToken, async (req, res) => {
+  logger.info(`Preferences.Post begining ${req.path}`);
 
-    PreferencesService.currentUsername = req.currentUsername;
+  PreferencesService.currentUsername = req.currentUsername;
 
-    logger.info(`Preferences.Post returning`);
-  } catch (error) {
-    next(error);
-  }
+  logger.info(`Preferences.Post returning`);
 });
 
-router.post('/setDarkTheme', verifyJwtToken, async (req, res, next) => {
-  try {
-    logger.info(`Preferences.setDarkTheme begining ${req.path}`);
+router.post('/setDarkTheme', verifyJwtToken, async (req, res) => {
+  logger.info(`Preferences.setDarkTheme begining ${req.path}`);
 
-    PreferencesService.currentUsername = req.currentUsername;
-    await PreferencesService.setDarkTheme(req.body.enableDarkTheme);
+  PreferencesService.currentUsername = req.currentUsername;
+  await PreferencesService.setDarkTheme(req.body.enableDarkTheme);
 
-    logger.info(`Preferences.setDarkTheme returning`);
+  logger.info(`Preferences.setDarkTheme returning`);
 
-    return BaseController.sendResponse(res, new ApiResponse('update sucessfully'));
-  } catch (error) {
-    next(error);
-  }
+  return BaseController.sendResponse(res, new ApiResponse('update sucessfully'));
 });
 
 export default router;

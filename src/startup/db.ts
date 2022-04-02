@@ -3,8 +3,8 @@ import { connect } from 'mongoose';
 import logger from '../utils/logger';
 
 export default function () {
-  const isProduction = (process.env.NODE_ENV || 'development') === 'production';
   let connectionString = config.get('db.connectionString') as string;
+  const isProduction = (process.env.NODE_ENV || 'development') === 'production';
   if (isProduction) {
     connectionString = connectionString.replace(
       'username:password',

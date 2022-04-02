@@ -2,6 +2,7 @@ import axios from 'axios';
 import config from 'config';
 import { NextFunction, Request } from 'express';
 import qs from 'querystring';
+import { InvalidOperationException } from '../models/Invalid-operation-exception';
 import logger from '../utils/logger';
 
 export default async (req: Request, res: any, next: NextFunction) => {
@@ -36,10 +37,9 @@ export default async (req: Request, res: any, next: NextFunction) => {
 
       throw new Error(((response.data as IReCaptcha)['error-codes'] as Array<any>)[0]);
     }
-    throw new Error('Token is not present');
+    throw new InvalidOperationException('Token is not present');
   } catch (err) {
-    logger.error(err);
-    return res.status(400).json({ message: 'Unable to verify captcha' });
+    next(err);
   }
 };
 

@@ -93,7 +93,7 @@ userSchema.methods.updateUserLockedInformation = async function (isPasswordValid
   await this.save({ validateBeforeSave: false });
 };
 
-userSchema.methods.isOldPasswordSameAsCurrentPassword = async function (userInputPassword: string) {
+userSchema.methods.isOldPasswordAndCurrentPasswordMatch = async function (userInputPassword: string) {
   return await bcrypt.compare(userInputPassword, this.password);
 };
 

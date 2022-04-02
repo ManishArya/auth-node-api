@@ -2,7 +2,9 @@ import cors from 'cors';
 import express from 'express';
 import i18n from 'i18n';
 import path from 'path';
-import errorHandling from './middlewares/error-handling';
+import genericErrorHandler from './middlewares/errors/generic-error-handler';
+import logHandler from './middlewares/errors/log-handler';
+import validationHandler from './middlewares/errors/validation-handler';
 import db from './startup/db';
 import route from './startup/route';
 import logger from './utils/logger';
@@ -31,12 +33,19 @@ app.set('view engine', 'ejs');
 app.use(cors());
 route(app);
 db();
-app.use(errorHandling);
+app.use(logHandler);
+app.use(validationHandler);
+app.use(genericErrorHandler);
 
 const port = process.env.PORT || 3000;
 
 app.listen(port, () => logger.info(`App listening on port ${port}!`));
 
-process.on('uncaughtException', (err) => logger.error(err));
+const callbackFunction = (err: any) => {
+  logger.error(err);
+  process.exit(1);
+};
+
+process.on('uncaughtException', callbackFunction);
 
 export default app;

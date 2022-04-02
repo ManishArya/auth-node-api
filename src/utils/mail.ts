@@ -32,6 +32,7 @@ export class Mail {
       });
     } catch (error) {
       logger.error(error);
+      // supress exception
     }
   }
 }

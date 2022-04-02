@@ -13,6 +13,6 @@ export default interface IUser {
   lastUpdatedBy: string;
   isUserLocked: boolean;
   isPasswordValid: (password: string) => Promise<boolean>;
-  isOldPasswordSameAsCurrentPassword: (password: string) => Promise<boolean>;
+  isOldPasswordAndCurrentPasswordMatch: (password: string) => Promise<boolean>;
   updateUserLockedInformation: (isPasswordValid: boolean) => Promise<void>;
 }

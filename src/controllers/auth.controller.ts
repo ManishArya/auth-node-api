@@ -5,7 +5,7 @@ import verifyJwtToken from '../middlewares/verify-jwt-token';
 import ApiResponse from '../models/api-response';
 import AuthResponse from '../models/auth-response';
 import ILogin from '../models/ILogin';
-import { LocalizedInvalidOperationException } from '../models/Invalid-operation-exception';
+import { InvalidOperationException } from '../models/Invalid-operation-exception';
 import AuthService from '../services/auth.service';
 import logger from '../utils/logger';
 import BaseController from './base.controller';
@@ -88,11 +88,11 @@ router.post('/token', recaptchVerify, async (req, res) => {
  *        $ref: '#/components/responses/500'
  */
 
-router.post('/forgetPassword', recaptchVerify, async (req, res) => {
+router.post('/sendPasswordResetLink', recaptchVerify, async (req, res) => {
   const { usernameOrEmail } = req.body;
-  logger.info(`Auth.ForgetPassword beginning ${req.path}`);
-  const result = await AuthService.sendResetPasswordLink(usernameOrEmail);
-  logger.info(`Auth.ForgetPassword returning`);
+  logger.info(`Auth.SendPasswordResetLink beginning ${req.path}`);
+  const result = await AuthService.sendPasswordResetLink(usernameOrEmail);
+  logger.info(`Auth.SendPasswordResetLink returning`);
   return BaseController.sendResponse(res, result);
 });
 
@@ -118,14 +118,12 @@ router.post('/forgetPassword', recaptchVerify, async (req, res) => {
 
 router.post('/changePassword', verifyJwtToken, async (req, res) => {
   logger.info(`Auth.ChangePassword beginning ${req.path}`);
+
   const currentUsername = req.currentUsername;
   const { password, confirmPassword, oldPassword } = req.body;
 
   if (password?.localeCompare(confirmPassword) !== 0) {
-    throw new LocalizedInvalidOperationException(
-      'password and confirm password does not match !!!',
-      'passwordMismatch'
-    );
+    throw new InvalidOperationException('password and confirm password does not match !!!', 'passwordMismatch');
   }
 
   let result: ApiResponse;

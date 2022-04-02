@@ -19,7 +19,6 @@ export default async (req: Request, res: any, next: NextFunction) => {
     }
     throw new Error();
   } catch (err) {
-    logger.error(err, err);
-    return res.status(401).json('user is unauthorized');
+    next(err);
   }
 };

@@ -2,7 +2,7 @@ import express from 'express';
 import recaptchVerify from '../middlewares/recaptch-verify';
 import verifyJwtToken from '../middlewares/verify-jwt-token';
 import ApiResponse from '../models/api-response';
-import { LocalizedInvalidOperationException } from '../models/Invalid-operation-exception';
+import { InvalidOperationException } from '../models/Invalid-operation-exception';
 import AuthService from '../services/auth.service';
 import UserService from '../services/user.service';
 import upload from '../utils/image-uploader';
@@ -55,7 +55,7 @@ router.put('/uploadAvatar', verifyJwtToken, upload().single('avatar'), async (re
   const fileBytes = avatar?.buffer;
 
   if (!fileBytes) {
-    throw new LocalizedInvalidOperationException('poster have no content', 'posterContentValidation');
+    throw new InvalidOperationException('poster have no content', 'posterContentValidation');
   }
 
   logger.info(`User.UploadAvatar beginning ${req.path}`);
@@ -63,7 +63,7 @@ router.put('/uploadAvatar', verifyJwtToken, upload().single('avatar'), async (re
   const m = new MagicNumberUtility(fileBytes, avatar.mimetype);
 
   if (!m.isImageType) {
-    throw new LocalizedInvalidOperationException(
+    throw new InvalidOperationException(
       'Poster contents don’t match the file extension.',
       'posterContentCheckValidation'
     );

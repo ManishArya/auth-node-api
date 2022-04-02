@@ -6,7 +6,7 @@ import UserDal from '../data-access/user.dal';
 import { LoginResponseCode } from '../enums/login-response-code.enum';
 import ApiResponse from '../models/api-response';
 import AuthResponse from '../models/auth-response';
-import { LocalizedInvalidOperationException } from '../models/Invalid-operation-exception';
+import { InvalidOperationException } from '../models/Invalid-operation-exception';
 import IUser from '../models/IUser';
 import UserInfo from '../models/user-info';
 import JwtHelper from '../utils/jwt-helper';
@@ -47,8 +47,8 @@ export default class AuthService {
     return new ApiResponse({ token });
   }
 
-  public static async sendResetPasswordLink(usernameOrEmail: string) {
-    const user = await UserDal.getUser({ $or: [{ username: usernameOrEmail }, { email: usernameOrEmail }] });
+  public static async sendPasswordResetLink(usernameOrEmail: string) {
+    const user = await UserDal.getLeanUser({ $or: [{ username: usernameOrEmail }, { email: usernameOrEmail }] });
     if (user) {
       const mail = new Mail({
         subject: 'Reset Password Link',
@@ -62,45 +62,54 @@ export default class AuthService {
   }
 
   public static async changePassword(user: IUser, password: string) {
-    const isSame = await user.isOldPasswordSameAsCurrentPassword(password);
-    if (!isSame) {
-      const isExists = await this.checkPasswordHistory(user.username, password);
-      if (!isExists) {
-        await PasswordHistoryDAL.savePassword(user.password, user.username);
-        user.password = password;
-        await (user as any).save();
-        const mail = new Mail({
-          subject: `Your, ${user.name}, Password has changed successfully`,
-          to: user.email,
-          text: ''
-        });
-        await mail.send();
-        return new ApiResponse('Password Changed Successfully', STATUS_CODE_SUCCESS);
-      }
-      throw new LocalizedInvalidOperationException(
-        'This password is one of recent changed password',
-        'recentPasswordChange'
-      );
+    const isValid = await this.validateNewPassword(user, password);
+    if (isValid) {
+      await this.updatePassword(user, password);
+      const mail = new Mail({
+        subject: `Your, ${user.name}, Password has changed successfully`,
+        to: user.email,
+        text: ''
+      });
+      await mail.send();
+      return new ApiResponse('Password Changed Successfully', STATUS_CODE_SUCCESS);
     }
-    throw new LocalizedInvalidOperationException(
-      'Current password can not be same as old password',
-      'currentOldPassword'
+    throw new InvalidOperationException(
+      'This password may not be  one of recent changed password',
+      'recentPasswordChange'
     );
+  }
+
+  private static async updatePassword(user: IUser, password: string) {
+    await PasswordHistoryDAL.savePassword(user.password, user.username);
+    user.password = password;
+    await (user as any).save();
+  }
+
+  private static async validateNewPassword(user: IUser, password: string) {
+    const hasMatch = await user.isOldPasswordAndCurrentPasswordMatch(password);
+
+    if (!hasMatch) {
+      const isExists = await this.checkPasswordHistory(user.username, password);
+
+      return !isExists;
+    }
+
+    throw new InvalidOperationException('Current password can not be same as old password', 'currentOldPassword');
   }
 
   private static async checkPasswordHistory(username: string, password: string): Promise<boolean> {
     const passwordHistory: any[] = await PasswordHistoryDAL.getPasswords(username);
     const passwords = passwordHistory.map((p) => p.password);
     for (let i = 0; i < passwords.length; i++) {
-      const isValidPassword = await this.isValidPassword(password, passwords[i]);
-      if (isValidPassword) {
+      const isPasswordValid = await this.isPasswordValid(password, passwords[i]);
+      if (isPasswordValid) {
         return Promise.resolve(true);
       }
     }
     return Promise.resolve(false);
   }
 
-  private static async isValidPassword(password: string, hashPassword: string): Promise<boolean> {
+  private static async isPasswordValid(password: string, hashPassword: string): Promise<boolean> {
     if (password) {
       return await bcrypt.compare(password, hashPassword);
     }

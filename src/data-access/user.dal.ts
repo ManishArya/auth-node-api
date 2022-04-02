@@ -11,6 +11,10 @@ export default class UserDal {
     return await User.findOne(filterQuery);
   }
 
+  public static async getLeanUser(filterQuery: FilterQuery<IUser>) {
+    return await User.findOne(filterQuery).lean();
+  }
+
   public static async saveUser(userData: any) {
     const user = new User(userData);
     return await user.save();

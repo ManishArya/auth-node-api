@@ -1,4 +1,5 @@
 import { NextFunction, Request } from 'express';
+import i18n from 'i18n';
 import PreferencesManager from '../models/preferences-manager';
 import JwtHelper from '../utils/jwt-helper';
 import logger from '../utils/logger';
@@ -15,6 +16,7 @@ export default async (req: Request, res: any, next: NextFunction) => {
       const p = new PreferencesManager(req.currentUsername);
       const locale = await p.getUserLocale();
       req.setLocale(locale);
+      i18n.setLocale(locale);
       return next();
     }
     throw new Error();

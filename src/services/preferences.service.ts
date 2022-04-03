@@ -15,4 +15,10 @@ export default class PreferencesService {
     p.setUserPreferences<boolean>('preferences', 'darkTheme', enable);
     await p.update();
   }
+
+  public static async setLocale(locale: string): Promise<void> {
+    const p = new PreferencesManager(this.currentUsername);
+    p.setUserPreferences<string>('preferences', 'locale', locale);
+    await p.update();
+  }
 }

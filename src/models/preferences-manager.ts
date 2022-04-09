@@ -1,7 +1,15 @@
 import PreferencesDAL from '../data-access/preferences.dal';
-import { IPreferenceManager } from './IPreferenceManager';
 import IPreferences from './IPreferences';
 import IPrefrencesSchema from './IPreferences-schema';
+
+interface IPreferenceManager {
+  getDarkTheme: () => Promise<boolean>;
+  getUserLocale: () => Promise<string>;
+  setDarkTheme: (enable: boolean) => Promise<void>;
+  setUserLocale: (locale: string) => Promise<void>;
+  update: () => Promise<void>;
+  getUserPreferencesBySection: <T>(section: ValueOf<SectionName>) => Promise<T>;
+}
 
 class SectionName {
   public readonly _preferences = 'preferences';
@@ -17,10 +25,14 @@ type ValueOf<T> = T[keyof T];
 export default class PreferencesManager implements IPreferenceManager {
   private readonly _systemPreferences: Map<string, Map<string, string>> = new Map();
   private readonly _userPreferences: Map<string, Map<string, string>> = new Map();
-  private username: string = '';
+  private readonly username: string = '';
 
-  constructor(username: string) {
+  private constructor(username: string) {
     this.username = username;
+  }
+
+  public static Current(username: string): IPreferenceManager {
+    return new PreferencesManager(username);
   }
 
   public async getUserPreferencesBySection<T>(section: ValueOf<SectionName>): Promise<T> {
@@ -39,8 +51,21 @@ export default class PreferencesManager implements IPreferenceManager {
     return await this.getUserPreferences<boolean>('preferences', 'darkTheme', false);
   }
 
+  public async setDarkTheme(value: boolean) {
+    await this.setUserPreferences<boolean>('preferences', 'darkTheme', value);
+  }
+
   public async getUserLocale() {
     return await this.getUserPreferences<string>('preferences', 'locale', 'en');
+  }
+
+  public async setUserLocale(locale: string) {
+    await this.setUserPreferences<string>('preferences', 'locale', locale);
+  }
+
+  public async update() {
+    await this.updateUserPreferences();
+    await this.updateSystemPreferences();
   }
 
   private async getUserPreferences<T>(
@@ -51,17 +76,8 @@ export default class PreferencesManager implements IPreferenceManager {
     return await this.getPreferences<T>(section, key, defaultValue, this.username);
   }
 
-  public setUserPreferences<T>(section: ValueOf<SectionName>, key: ValueOf<SectionKey>, value: T) {
-    this.setPreferences<T>(section.valueOf(), key.valueOf(), value, this.username);
-  }
-
-  public getSystemPreferences<T>(section: string, key: string, defaultValue: T) {
-    return this.getPreferences<T>(section, key, defaultValue, '');
-  }
-
-  public async update() {
-    await this.updateUserPreferences();
-    await this.updateSystemPreferences();
+  private async setUserPreferences<T>(section: ValueOf<SectionName>, key: ValueOf<SectionKey>, value: T) {
+    await this.setPreferences<T>(section, key, value, this.username);
   }
 
   private async updateUserPreferences() {
@@ -118,13 +134,7 @@ export default class PreferencesManager implements IPreferenceManager {
     const _preferences = username ? this._userPreferences : this._systemPreferences;
 
     if (!_preferences.has(section)) {
-      const preference = await this.getLeanPreference(section, username);
-
-      if (!preference) {
-        return defaultValue;
-      }
-
-      this.setPreferencesMap(section, preference.value, username);
+      await this.getPreferencesMap(section, username);
     }
 
     const keyValuePair = _preferences.get(section);
@@ -146,8 +156,10 @@ export default class PreferencesManager implements IPreferenceManager {
     return JSON.parse(value as string) as T;
   }
 
-  private setPreferencesMap(section: string, value: string, username: string): void {
+  private async getPreferencesMap(section: string, username: string): Promise<Map<string, Map<string, string>>> {
     const _preferences = username ? this._userPreferences : this._systemPreferences;
+    const preference = await this.getLeanPreference(section, username);
+    const value = preference?.value;
 
     if (value) {
       const keyValuePair = new Map<string, string>();
@@ -159,20 +171,22 @@ export default class PreferencesManager implements IPreferenceManager {
           keyValuePair.set(parts[0], parts[1]);
         }
       });
-
       _preferences.set(section, keyValuePair);
     }
+
+    return _preferences;
   }
 
-  private setPreferences<T>(section: string, key: string, value: T, username: string): void {
+  private async setPreferences<T>(section: string, key: string, value: T, username: string): Promise<void> {
     const _preferences = username ? this._userPreferences : this._systemPreferences;
     if (!_preferences.has(section)) {
-      _preferences.set(section, new Map<string, string>([[key, value as unknown as string]]));
+      await this.getPreferencesMap(section, username);
+    }
+    const keyValuePair = _preferences.get(section);
+    if (keyValuePair) {
+      _preferences.set(section, keyValuePair.set(key, value as unknown as string));
     } else {
-      const keyValuePair = _preferences.get(section);
-      if (keyValuePair) {
-        _preferences.set(section, keyValuePair.set(key, value as unknown as string));
-      }
+      _preferences.set(section, new Map<string, string>([[key, value as unknown as string]]));
     }
   }
 }

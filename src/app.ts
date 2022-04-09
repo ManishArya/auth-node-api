@@ -43,6 +43,7 @@ app.listen(port, () => logger.info(`App listening on port ${port}!`));
 
 const callbackFunction = (err: any) => {
   logger.error(err);
+  process.kill(process.pid);
   process.exit(1);
 };
 

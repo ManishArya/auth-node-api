@@ -1,3 +1,4 @@
+import awilix from 'awilix';
 import cors from 'cors';
 import express from 'express';
 import i18n from 'i18n';
@@ -8,6 +9,10 @@ import validationHandler from './middlewares/errors/validation-handler';
 import db from './startup/db';
 import route from './startup/route';
 import logger from './utils/logger';
+
+const container = awilix.createContainer({
+  injectionMode: awilix.InjectionMode.PROXY
+});
 
 i18n.configure({
   locales: ['en', 'hi'],
@@ -31,7 +36,7 @@ app.use((res, req, next) => {
 app.use(express.json());
 app.set('view engine', 'ejs');
 app.use(cors());
-route(app);
+route(app, container);
 db();
 app.use(logHandler);
 app.use(validationHandler);

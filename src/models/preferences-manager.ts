@@ -134,7 +134,7 @@ export default class PreferencesManager implements IPreferenceManager {
     const _preferences = username ? this._userPreferences : this._systemPreferences;
 
     if (!_preferences.has(section)) {
-      await this.getPreferencesMap(section, username);
+      await this.writePreferencesMap(section, username);
     }
 
     const keyValuePair = _preferences.get(section);
@@ -156,7 +156,7 @@ export default class PreferencesManager implements IPreferenceManager {
     return JSON.parse(value as string) as T;
   }
 
-  private async getPreferencesMap(section: string, username: string): Promise<Map<string, Map<string, string>>> {
+  private async writePreferencesMap(section: string, username: string): Promise<Map<string, Map<string, string>>> {
     const _preferences = username ? this._userPreferences : this._systemPreferences;
     const preference = await this.getLeanPreference(section, username);
     const value = preference?.value;
@@ -180,7 +180,7 @@ export default class PreferencesManager implements IPreferenceManager {
   private async setPreferences<T>(section: string, key: string, value: T, username: string): Promise<void> {
     const _preferences = username ? this._userPreferences : this._systemPreferences;
     if (!_preferences.has(section)) {
-      await this.getPreferencesMap(section, username);
+      await this.writePreferencesMap(section, username);
     }
     const keyValuePair = _preferences.get(section);
     if (keyValuePair) {

@@ -5,10 +5,15 @@ import JwtHelper from '../utils/jwt-helper';
 import { Mail } from '../utils/mail';
 
 export default class UserService {
-  public static currentUsername: string;
+  public currentUsername: string = '';
+  private readonly _userDAL: UserDal;
 
-  public static async saveUser(userData: any) {
-    const user = await UserDal.saveUser(userData);
+  constructor(private userDAL: UserDal) {
+    this._userDAL = userDAL;
+  }
+
+  public async saveUser(userData: any) {
+    const user = await this._userDAL.saveUser(userData);
     const token = JwtHelper.generateToken(user.username, user.isAdmin);
     const mail = new Mail({
       subject: `Your, ${user.name}, account has created successfully `,
@@ -18,40 +23,40 @@ export default class UserService {
     return new ApiResponse({ token });
   }
 
-  public static async editProfile(userData: any) {
+  public async editProfile(userData: any) {
     return await this.updateUser(userData);
   }
 
-  public static async updateAvatar(fileBytes?: Buffer) {
+  public async updateAvatar(fileBytes?: Buffer) {
     return await this.updateUser({ avatar: fileBytes });
   }
 
-  public static async updateEmailAddress(email: string) {
+  public async updateEmailAddress(email: string) {
     return await this.updateUser({ email });
   }
 
-  public static async getProfile() {
+  public async getProfile() {
     const username = this.currentUsername;
-    const user = await UserDal.getUserByUsername(username);
+    const user = await this._userDAL.getUserByUsername(username);
     return new ApiResponse(user?.toObject());
   }
 
-  public static async getUsers() {
-    let users = await UserDal.getUsers();
+  public async getUsers() {
+    let users = await this._userDAL.getUsers();
     users = users.map((u: any) => u.toObject());
     return new ApiResponse(users);
   }
 
-  public static async deleteUser(username: string) {
-    await UserDal.deleteUser(username);
+  public async deleteUser(username: string) {
+    await this._userDAL.deleteUser(username);
     return new ApiResponse('User Deleted Successfully', STATUS_CODE_NOCONTENT);
   }
 
-  private static async updateUser(data: any) {
+  private async updateUser(data: any) {
     const username = this.currentUsername;
     data.lastUpdatedBy = username?.toLowerCase();
 
-    const user = await UserDal.updateUser({ username }, data);
+    const user = await this._userDAL.updateUser({ username }, data);
 
     if (user) {
       return new ApiResponse(user.toObject());

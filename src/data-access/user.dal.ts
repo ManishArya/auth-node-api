@@ -3,39 +3,39 @@ import IUser from '../models/IUser';
 import User from '../models/user';
 
 export default class UserDal {
-  public static async getUserByUsername(username: string) {
+  public async getUserByUsername(username: string) {
     return await this.getUser({ username });
   }
 
-  public static async getUser(filterQuery: FilterQuery<IUser>) {
+  public async getUser(filterQuery: FilterQuery<IUser>) {
     return await User.findOne(filterQuery);
   }
 
-  public static async getLeanUser(filterQuery: FilterQuery<IUser>) {
+  public async getLeanUser(filterQuery: FilterQuery<IUser>) {
     return await User.findOne(filterQuery).lean();
   }
 
-  public static async saveUser(userData: any) {
+  public async saveUser(userData: any) {
     const user = new User(userData);
     return await user.save();
   }
 
-  public static async updateUser(filter: any, update: any) {
+  public async updateUser(filter: any, update: any) {
     return await User.findOneAndUpdate(filter, update, {
       returnOriginal: false,
       runValidators: true
     });
   }
 
-  public static async getUsers() {
+  public async getUsers() {
     return await User.find();
   }
 
-  public static async deleteUser(username: any) {
+  public async deleteUser(username: any) {
     return await User.findOneAndDelete({ username });
   }
 
-  public static async checkUserExists(filter: any): Promise<boolean> {
+  public async checkUserExists(filter: any): Promise<boolean> {
     return await User.exists(filter);
   }
 }

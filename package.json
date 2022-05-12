@@ -21,6 +21,7 @@
   "author": "Manish",
   "license": "ISC",
   "dependencies": {
+    "awilix": "^7.0.3",
     "axios": "^0.24.0",
     "bcrypt": "^5.0.1",
     "config": "^3.3.6",

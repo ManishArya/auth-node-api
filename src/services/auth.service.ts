@@ -10,16 +10,22 @@ import { InvalidOperationException } from '../models/Invalid-operation-exception
 import IUser from '../models/IUser';
 import UserInfo from '../models/user-info';
 import JwtHelper from '../utils/jwt-helper';
-import { Mail } from '../utils/mail';
+import MailService from './mail.service';
 
 export default class AuthService {
   public currentUser: UserInfo = {} as UserInfo;
   private readonly _userDAL: UserDal;
+  private readonly _mailService: MailService;
   private readonly _passwordHistoryDAL: PasswordHistoryDAL;
 
-  constructor(private userDAL: UserDal, private passwordHistoryDAL: PasswordHistoryDAL) {
+  constructor(
+    private userDAL: UserDal,
+    private passwordHistoryDAL: PasswordHistoryDAL,
+    private mailService: MailService
+  ) {
     this._userDAL = userDAL;
     this._passwordHistoryDAL = passwordHistoryDAL;
+    this._mailService = mailService;
   }
 
   public async validateUser(
@@ -27,7 +33,7 @@ export default class AuthService {
     password: string,
     errorMessage = 'Credential is wrong !!!'
   ): Promise<AuthResponse> {
-    const user = await this._userDAL.getUser(filter);
+    const user = await this._userDAL.GetSingleRecord(filter);
 
     if (!user) {
       errorMessage = __('userNotFound');
@@ -55,14 +61,11 @@ export default class AuthService {
   }
 
   public async sendPasswordResetLink(usernameOrEmail: string) {
-    const user = await this._userDAL.getLeanUser({ $or: [{ username: usernameOrEmail }, { email: usernameOrEmail }] });
+    const user = await this._userDAL.GetLeanSingleRecord({
+      $or: [{ username: usernameOrEmail }, { email: usernameOrEmail }]
+    });
     if (user) {
-      const mail = new Mail({
-        subject: 'Reset Password Link',
-        to: user.email,
-        text: ''
-      });
-      await mail.send();
+      await this.sendEmail('Reset Password Link', user.email);
       return new ApiResponse(__('forgotPasswordInstruction'), STATUS_CODE_SUCCESS);
     }
     return new ApiResponse(__('userExistFailure'), STATUS_CODE_NOT_FOUND);
@@ -72,18 +75,19 @@ export default class AuthService {
     const isValid = await this.validateNewPassword(user, password);
     if (isValid) {
       await this.updatePassword(user, password);
-      const mail = new Mail({
-        subject: `Your, ${user.name}, Password has changed successfully`,
-        to: user.email,
-        text: ''
-      });
-      await mail.send();
+      await this.sendEmail(`Your, ${user.name}, Password has changed successfully`, user.email);
       return new ApiResponse('Password Changed Successfully', STATUS_CODE_SUCCESS);
     }
     throw new InvalidOperationException(
       'This password may not be  one of recent changed password',
       'recentPasswordChange'
     );
+  }
+
+  private async sendEmail(subject: string, email: string): Promise<void> {
+    this._mailService.subject = subject;
+    this._mailService.to = email;
+    await this._mailService.send();
   }
 
   private async updatePassword(user: IUser, password: string) {

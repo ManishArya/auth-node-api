@@ -1,4 +1,4 @@
-import awilix from 'awilix';
+import { createContainer } from 'awilix';
 import cors from 'cors';
 import express from 'express';
 import i18n from 'i18n';
@@ -10,9 +10,7 @@ import db from './startup/db';
 import route from './startup/route';
 import logger from './utils/logger';
 
-const container = awilix.createContainer({
-  injectionMode: awilix.InjectionMode.PROXY
-});
+const container = createContainer();
 
 i18n.configure({
   locales: ['en', 'hi'],

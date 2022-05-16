@@ -2,24 +2,24 @@ import { STATUS_CODE_NOCONTENT, STATUS_CODE_NOT_FOUND } from '../constants/statu
 import UserDal from '../data-access/user.dal';
 import ApiResponse from '../models/api-response';
 import JwtHelper from '../utils/jwt-helper';
-import { Mail } from '../utils/mail';
+import MailService from './mail.service';
 
 export default class UserService {
   public currentUsername: string = '';
   private readonly _userDAL: UserDal;
+  private readonly _mailService: MailService;
 
-  constructor(private userDAL: UserDal) {
+  constructor(private userDAL: UserDal, private mailService: MailService) {
     this._userDAL = userDAL;
+    this._mailService = mailService;
   }
 
   public async saveUser(userData: any) {
-    const user = await this._userDAL.saveUser(userData);
+    const user = await this._userDAL.SaveRecord(userData);
     const token = JwtHelper.generateToken(user.username, user.isAdmin);
-    const mail = new Mail({
-      subject: `Your, ${user.name}, account has created successfully `,
-      to: user.email
-    });
-    await mail.send();
+    this._mailService.subject = `Your, ${user.name}, account has created successfully `;
+    this._mailService.to = user.email;
+    await this._mailService.send();
     return new ApiResponse({ token });
   }
 
@@ -37,18 +37,18 @@ export default class UserService {
 
   public async getProfile() {
     const username = this.currentUsername;
-    const user = await this._userDAL.getUserByUsername(username);
+    const user = await this._userDAL.GetSingleRecord({ username });
     return new ApiResponse(user?.toObject());
   }
 
   public async getUsers() {
-    let users = await this._userDAL.getUsers();
+    let users = await this._userDAL.GetAllRecords();
     users = users.map((u: any) => u.toObject());
     return new ApiResponse(users);
   }
 
   public async deleteUser(username: string) {
-    await this._userDAL.deleteUser(username);
+    await this._userDAL.DeleteRecord({ username });
     return new ApiResponse('User Deleted Successfully', STATUS_CODE_NOCONTENT);
   }
 
@@ -56,7 +56,7 @@ export default class UserService {
     const username = this.currentUsername;
     data.lastUpdatedBy = username?.toLowerCase();
 
-    const user = await this._userDAL.updateUser({ username }, data);
+    const user = await this._userDAL.UpdateRecord({ username }, data);
 
     if (user) {
       return new ApiResponse(user.toObject());

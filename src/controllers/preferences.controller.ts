@@ -5,11 +5,18 @@ import logger from '../utils/logger';
 import BaseController from './base.controller';
 
 export default class PreferencesController extends BaseController {
+  private readonly _preferencesService: PreferencesService;
+
+  constructor(private preferencesService: PreferencesService) {
+    super();
+    this._preferencesService = preferencesService;
+  }
+
   public async GetPreferences(req: Request, res: Response) {
     logger.info(`Preferences.Get beginning ${req.path}`);
 
-    PreferencesService.currentUsername = req.currentUsername;
-    const response = await PreferencesService.getPreferences();
+    this._preferencesService.currentUsername = req.currentUsername;
+    const response = await this._preferencesService.getPreferences();
 
     logger.info(`Preferences.Get returning`);
 
@@ -19,8 +26,8 @@ export default class PreferencesController extends BaseController {
   public setDarkTheme = async (req: Request, res: Response) => {
     logger.info(`Preferences.setDarkTheme beginning ${req.path}`);
 
-    PreferencesService.currentUsername = req.currentUsername;
-    await PreferencesService.setDarkTheme(req.body.enableDarkTheme);
+    this._preferencesService.currentUsername = req.currentUsername;
+    await this._preferencesService.setDarkTheme(req.body.enableDarkTheme);
 
     logger.info(`Preferences.setDarkTheme returning`);
 
@@ -30,8 +37,8 @@ export default class PreferencesController extends BaseController {
   public setLocale = async (req: Request, res: Response) => {
     logger.info(`Preferences.setLocale beginning ${req.path}`);
 
-    PreferencesService.currentUsername = req.currentUsername;
-    await PreferencesService.setLocale(req.body.locale);
+    this._preferencesService.currentUsername = req.currentUsername;
+    await this._preferencesService.setLocale(req.body.locale);
 
     logger.info(`Preferences.setLocale returning`);
 

@@ -1,4 +1,4 @@
-import { createContainer } from 'awilix';
+import { asClass, createContainer, InjectionMode, Lifetime } from 'awilix';
 import cors from 'cors';
 import express from 'express';
 import i18n from 'i18n';
@@ -8,9 +8,24 @@ import logHandler from './middlewares/errors/log-handler';
 import validationHandler from './middlewares/errors/validation-handler';
 import db from './startup/db';
 import route from './startup/route';
+import { Config } from './utils/config';
 import logger from './utils/logger';
 
-const container = createContainer();
+const container = createContainer({
+  injectionMode: InjectionMode.CLASSIC
+});
+
+container.register({
+  config: asClass(Config).setLifetime(Lifetime.SCOPED)
+});
+
+container.loadModules(['controllers/**/*.ts', 'services/**/*.ts', 'data-access/**/*.ts'], {
+  formatName: 'camelCase',
+  resolverOptions: {
+    lifetime: Lifetime.SCOPED,
+    register: asClass
+  }
+});
 
 i18n.configure({
   locales: ['en', 'hi'],

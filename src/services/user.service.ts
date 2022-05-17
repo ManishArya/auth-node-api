@@ -15,7 +15,7 @@ export default class UserService {
   }
 
   public async saveUser(userData: any) {
-    const user = await this._userDAL.SaveRecord(userData);
+    const user = await this._userDAL.Save(userData);
     const token = JwtHelper.generateToken(user.username, user.isAdmin);
     this._mailService.subject = `Your, ${user.name}, account has created successfully `;
     this._mailService.to = user.email;
@@ -48,7 +48,7 @@ export default class UserService {
   }
 
   public async deleteUser(username: string) {
-    await this._userDAL.DeleteRecord({ username });
+    await this._userDAL.Delete({ username });
     return new ApiResponse('User Deleted Successfully', STATUS_CODE_NOCONTENT);
   }
 
@@ -56,7 +56,7 @@ export default class UserService {
     const username = this.currentUsername;
     data.lastUpdatedBy = username?.toLowerCase();
 
-    const user = await this._userDAL.UpdateRecord({ username }, data);
+    const user = await this._userDAL.FindAndUpdate({ username }, data);
 
     if (user) {
       return new ApiResponse(user.toObject());

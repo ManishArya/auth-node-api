@@ -1,7 +1,7 @@
-export default interface IPrefrencesSchema {
+import IBaseSchema from './IBaseSchema';
+
+export default interface IPrefrencesSchema extends IBaseSchema {
   username: string;
   sectionName: string;
   value: string;
-  createdBy: string;
-  lastUpdatedBy: string;
 }

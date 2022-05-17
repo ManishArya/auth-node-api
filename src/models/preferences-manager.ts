@@ -26,9 +26,11 @@ export default class PreferencesManager implements IPreferenceManager {
   private readonly _systemPreferences: Map<string, Map<string, string>> = new Map();
   private readonly _userPreferences: Map<string, Map<string, string>> = new Map();
   private readonly username: string = '';
+  private readonly _preferencesDAL: PreferencesDAL;
 
   private constructor(username: string) {
     this.username = username;
+    this._preferencesDAL = new PreferencesDAL();
   }
 
   public static Current(username: string): IPreferenceManager {
@@ -110,7 +112,7 @@ export default class PreferencesManager implements IPreferenceManager {
         username
       };
 
-      const isExists = await PreferencesDAL.checkPreferenceExists(filter);
+      const isExists = await this._preferencesDAL.CheckRecordExists(filter);
 
       const preference = {
         sectionName,
@@ -119,15 +121,15 @@ export default class PreferencesManager implements IPreferenceManager {
       } as IPrefrencesSchema;
 
       if (isExists) {
-        await PreferencesDAL.updatePreference(filter, preference);
+        await this._preferencesDAL.Update(filter, preference);
       } else {
-        await PreferencesDAL.createPreference(preference);
+        await this._preferencesDAL.Create(preference);
       }
     }
   }
 
   private async getLeanPreference(sectionName: string, username: string): Promise<IPrefrencesSchema> {
-    return await PreferencesDAL.getLeanPreference(username, sectionName);
+    return await this._preferencesDAL.GetLeanSingleRecord({ username, sectionName });
   }
 
   private async getPreferences<T>(section: string, key: string, defaultValue: T, username: string): Promise<T> {

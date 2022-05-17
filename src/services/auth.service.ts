@@ -7,6 +7,7 @@ import { LoginResponseCode } from '../enums/login-response-code.enum';
 import ApiResponse from '../models/api-response';
 import AuthResponse from '../models/auth-response';
 import { InvalidOperationException } from '../models/Invalid-operation-exception';
+import IPasswordHistorySchema from '../models/IPasswordHistorySchema';
 import IUser from '../models/IUser';
 import UserInfo from '../models/user-info';
 import JwtHelper from '../utils/jwt-helper';
@@ -91,7 +92,7 @@ export default class AuthService {
   }
 
   private async updatePassword(user: IUser, password: string) {
-    await this._passwordHistoryDAL.savePassword(user.password, user.username);
+    await this._passwordHistoryDAL.Save({ password: user.password, username: user.username } as IPasswordHistorySchema);
     user.password = password;
     await (user as any).save();
   }
@@ -109,7 +110,7 @@ export default class AuthService {
   }
 
   private async checkPasswordHistory(username: string, password: string): Promise<boolean> {
-    const passwordHistory: any[] = await this._passwordHistoryDAL.getPasswords(username);
+    const passwordHistory: any[] = await this._passwordHistoryDAL.GetNRecords(5, { username });
     const passwords = passwordHistory.map((p) => p.password);
     for (let i = 0; i < passwords.length; i++) {
       const isPasswordValid = await this.isPasswordValid(password, passwords[i]);

@@ -1,33 +1,8 @@
+import { Model } from 'mongoose';
 import IPrefrencesSchema from '../models/IPreferences-schema';
 import { default as preferencesSchema } from '../models/preferences-schema';
+import { QueryDAL } from './query.dal';
 
-export default class PreferencesDAL {
-  public static async getPreferences(username: string): Promise<IPrefrencesSchema[]> {
-    return await preferencesSchema.find({ $or: [{ username }, { username: '' }] }).lean();
-  }
-
-  public static async getPreference(username: string, sectionName: string) {
-    return await preferencesSchema.findOne({ username, sectionName });
-  }
-
-  public static async getLeanPreference(username: string, sectionName: string): Promise<IPrefrencesSchema> {
-    return await preferencesSchema.findOne({ username, sectionName }).lean();
-  }
-
-  public static async createPreference(preferenceSchema: IPrefrencesSchema) {
-    await preferencesSchema.create(preferenceSchema);
-  }
-
-  public static async checkPreferenceExists(filter: any) {
-    return await preferencesSchema.exists(filter);
-  }
-
-  public static async updatePreference(filter: any, update: IPrefrencesSchema) {
-    await preferencesSchema.updateOne(filter, update);
-  }
-
-  public static async savePreference(preference: IPrefrencesSchema) {
-    const newPreferenceSchema = new preferencesSchema(preference);
-    await newPreferenceSchema.save();
-  }
+export default class PreferencesDAL extends QueryDAL<IPrefrencesSchema> {
+  protected DBSchema: Model<IPrefrencesSchema, {}, {}> = preferencesSchema;
 }

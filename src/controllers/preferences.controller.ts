@@ -12,21 +12,19 @@ export default class PreferencesController extends BaseController {
     this._preferencesService = preferencesService;
   }
 
-  public async GetPreferences(req: Request, res: Response) {
+  public GetPreferences = async (req: Request, res: Response) => {
     logger.info(`Preferences.Get beginning ${req.path}`);
 
-    this._preferencesService.currentUsername = req.currentUsername;
     const response = await this._preferencesService.getPreferences();
 
     logger.info(`Preferences.Get returning`);
 
     return this.sendResponse(res, response);
-  }
+  };
 
   public setDarkTheme = async (req: Request, res: Response) => {
     logger.info(`Preferences.setDarkTheme beginning ${req.path}`);
 
-    this._preferencesService.currentUsername = req.currentUsername;
     await this._preferencesService.setDarkTheme(req.body.enableDarkTheme);
 
     logger.info(`Preferences.setDarkTheme returning`);
@@ -37,7 +35,6 @@ export default class PreferencesController extends BaseController {
   public setLocale = async (req: Request, res: Response) => {
     logger.info(`Preferences.setLocale beginning ${req.path}`);
 
-    this._preferencesService.currentUsername = req.currentUsername;
     await this._preferencesService.setLocale(req.body.locale);
 
     logger.info(`Preferences.setLocale returning`);

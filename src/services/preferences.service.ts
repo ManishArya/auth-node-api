@@ -3,22 +3,27 @@ import IPreferences from '../models/IPreferences';
 import PreferencesManager from '../models/preferences-manager';
 
 export default class PreferencesService {
-  public currentUsername: string = '';
+  private readonly currentUsername: string = '';
+  private readonly _preferencesManager: PreferencesManager;
+
+  constructor(private username: string, preferencesManager: PreferencesManager) {
+    this.currentUsername = username;
+    this._preferencesManager = preferencesManager;
+  }
 
   public async getPreferences() {
-    const p = PreferencesManager.Current(this.currentUsername);
-    return Promise.resolve(new ApiResponse(await p.getUserPreferencesBySection<IPreferences>('preferences')));
+    return Promise.resolve(
+      new ApiResponse(await this._preferencesManager.getUserPreferencesBySection<IPreferences>('preferences'))
+    );
   }
 
   public async setDarkTheme(enable: boolean): Promise<void> {
-    const p = PreferencesManager.Current(this.currentUsername);
-    await p.setDarkTheme(enable);
-    await p.update();
+    await this._preferencesManager.setDarkTheme(enable);
+    await this._preferencesManager.update();
   }
 
   public async setLocale(locale: string): Promise<void> {
-    const p = PreferencesManager.Current(this.currentUsername);
-    await p.setUserLocale(locale);
-    await p.update();
+    await this._preferencesManager.setUserLocale(locale);
+    await this._preferencesManager.update();
   }
 }

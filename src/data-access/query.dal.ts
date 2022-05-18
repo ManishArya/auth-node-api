@@ -1,8 +1,12 @@
 import { FilterQuery, Model, UpdateQuery } from 'mongoose';
 import IBaseSchema from '../models/IBaseSchema';
 
-export abstract class QueryDAL<T extends IBaseSchema> {
-  protected abstract readonly DBSchema: Model<T>;
+export class QueryDAL<T extends IBaseSchema> {
+  protected readonly DBSchema: Model<T>;
+
+  constructor(schema: any) {
+    this.DBSchema = schema;
+  }
 
   public async GetSingleRecord(filterQuery: FilterQuery<T>) {
     return await this.DBSchema.findOne(filterQuery);

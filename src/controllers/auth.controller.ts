@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { STATUS_CODE_SUCCESS } from '../constants/status-code.const';
+import { StatusCodes } from 'http-status-codes';
 import ApiResponse from '../models/api-response';
 import AuthResponse from '../models/auth-response';
 import ILogin from '../models/ILogin';
@@ -15,31 +15,31 @@ export default class AuthController extends BaseController {
     this._authService = authService;
   }
 
-  public async Token(req: Request, res: Response) {
+  public Token = async (req: Request, res: Response) => {
     const { usernameOrEmail, password } = req.body as ILogin;
     logger.info(`Auth.Token beginning ${req.path}`);
     let result: ApiResponse;
     const filter = { $or: [{ username: usernameOrEmail }, { email: usernameOrEmail }] };
     result = await this._authService.validateUser(filter, password);
     const loginResponseCode = (result as AuthResponse).code;
-    if (result.statusCode === STATUS_CODE_SUCCESS) {
+    if (result.statusCode === StatusCodes.OK) {
       const user = result.content;
       result = await this._authService.generateToken(user);
     }
 
     logger.info(`Auth.Token returning`);
     return this.sendResponse(res, result, loginResponseCode);
-  }
+  };
 
-  public async ForgotPassword(req: Request, res: Response) {
+  public ForgotPassword = async (req: Request, res: Response) => {
     const { usernameOrEmail } = req.body;
     logger.info(`Auth.SendPasswordResetLink beginning ${req.path}`);
     const result = await this._authService.sendPasswordResetLink(usernameOrEmail);
     logger.info(`Auth.SendPasswordResetLink returning`);
     return this.sendResponse(res, result);
-  }
+  };
 
-  public async ChangePassword(req: Request, res: Response) {
+  public ChangePassword = async (req: Request, res: Response) => {
     logger.info(`Auth.ChangePassword beginning ${req.path}`);
 
     const currentUsername = req.currentUsername;
@@ -53,12 +53,12 @@ export default class AuthController extends BaseController {
     const filter = { username: currentUsername };
     result = await this._authService.validateUser(filter, oldPassword, req.__('oldPasswordWrong'));
 
-    if (result.statusCode === STATUS_CODE_SUCCESS) {
+    if (result.statusCode === StatusCodes.OK) {
       const user = result.content;
       result = await this._authService.changePassword(user, password);
     }
 
     logger.info(`Auth.ChangePassword returning`);
     return this.sendResponse(res, result);
-  }
+  };
 }

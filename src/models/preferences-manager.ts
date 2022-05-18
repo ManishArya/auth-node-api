@@ -1,4 +1,4 @@
-import PreferencesDAL from '../data-access/preferences.dal';
+import { QueryDAL } from '../data-access/query.dal';
 import IPreferences from './IPreferences';
 import IPrefrencesSchema from './IPreferences-schema';
 
@@ -26,15 +26,11 @@ export default class PreferencesManager implements IPreferenceManager {
   private readonly _systemPreferences: Map<string, Map<string, string>> = new Map();
   private readonly _userPreferences: Map<string, Map<string, string>> = new Map();
   private readonly username: string = '';
-  private readonly _preferencesDAL: PreferencesDAL;
+  private readonly _preferencesDAL: QueryDAL<IPrefrencesSchema>;
 
-  private constructor(username: string) {
+  public constructor(username: string, preferencesDAL: QueryDAL<IPrefrencesSchema>) {
     this.username = username;
-    this._preferencesDAL = new PreferencesDAL();
-  }
-
-  public static Current(username: string): IPreferenceManager {
-    return new PreferencesManager(username);
+    this._preferencesDAL = preferencesDAL;
   }
 
   public async getUserPreferencesBySection<T>(section: ValueOf<SectionName>): Promise<T> {

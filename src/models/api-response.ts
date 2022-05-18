@@ -1,14 +1,14 @@
-import { STATUS_CODE_SUCCESS } from '../constants/status-code.const';
+import { StatusCodes } from 'http-status-codes';
 
 export default class ApiResponse {
   public statusCode: number;
   public content: any;
-  constructor(content: any, statusCode = STATUS_CODE_SUCCESS) {
+  constructor(content: any, statusCode = StatusCodes.OK) {
     this.statusCode = statusCode;
     this.content = content;
   }
 
   public get isSuccess(): boolean {
-    return this.statusCode === STATUS_CODE_SUCCESS;
+    return this.statusCode === StatusCodes.OK;
   }
 }

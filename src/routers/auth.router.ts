@@ -1,20 +1,18 @@
-import express from 'express';
-import AuthController from '../controllers/auth.controller';
-import PasswordHistoryDAL from '../data-access/password-history.dal';
-import UserDal from '../data-access/user.dal';
+import express, { NextFunction, Request, Response } from 'express';
 import recaptchVerify from '../middlewares/recaptch-verify';
 import verifyJwtToken from '../middlewares/verify-jwt-token';
-import AuthService from '../services/auth.service';
-import MailService from '../services/mail.service';
-import { Config } from '../utils/config';
 const router = express.Router();
-const authController = new AuthController(
-  new AuthService(new UserDal(), new PasswordHistoryDAL(), new MailService(new Config()))
-);
-router.post('/token', recaptchVerify, authController.Token.bind(authController));
 
-router.post('/sendPasswordResetLink', recaptchVerify, authController.ForgotPassword.bind(authController));
+const resolveDependency = (methodName: string) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    return (req as any).scope.resolve('authController')[methodName](req, res);
+  };
+};
 
-router.post('/changePassword', verifyJwtToken, authController.ChangePassword.bind(authController));
+router.post('/token', recaptchVerify, resolveDependency('Token'));
+
+router.post('/sendPasswordResetLink', recaptchVerify, resolveDependency('ForgotPassword'));
+
+router.post('/changePassword', verifyJwtToken, resolveDependency('ChangePassword'));
 
 export default router;

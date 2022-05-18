@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { STATUS_CODE_UNPROCESSING } from '../../constants/status-code.const';
+import { StatusCodes } from 'http-status-codes';
 import ApiResponse from '../../models/api-response';
 
 export default (error: Error, req: Request, res: Response, next: NextFunction) => {
@@ -10,7 +10,7 @@ export default (error: Error, req: Request, res: Response, next: NextFunction) =
     keys.forEach((key) => {
       validationsErrors[key] = errors[key].message;
     });
-    const apiResponse = new ApiResponse(validationsErrors, STATUS_CODE_UNPROCESSING);
+    const apiResponse = new ApiResponse(validationsErrors, StatusCodes.UNPROCESSABLE_ENTITY);
     res.status(apiResponse.statusCode).json({ content: apiResponse.content, isSuccess: apiResponse.isSuccess });
   } else {
     next(error);

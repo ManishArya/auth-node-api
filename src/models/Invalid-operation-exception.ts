@@ -1,8 +1,4 @@
-import {
-  STATUS_CODE_BAD_REQUEST,
-  STATUS_CODE_NOT_FOUND,
-  STATUS_CODE_UNAUTHORIZED
-} from '../constants/status-code.const';
+import { StatusCodes } from 'http-status-codes';
 
 export class LocalizedException extends Error {
   public localizedMessageKey: string | undefined;
@@ -16,7 +12,7 @@ export class LocalizedException extends Error {
 }
 
 export class InvalidOperationException extends LocalizedException {
-  public readonly statusCode = STATUS_CODE_BAD_REQUEST;
+  public readonly statusCode = StatusCodes.BAD_REQUEST;
   constructor(message: string, localizedMessageKey?: string, params?: any) {
     super(message, localizedMessageKey, params);
     this.name = 'InvalidOperationException';
@@ -24,7 +20,7 @@ export class InvalidOperationException extends LocalizedException {
 }
 
 export class NotFoundException extends LocalizedException {
-  public readonly statusCode = STATUS_CODE_NOT_FOUND;
+  public readonly statusCode = StatusCodes.NOT_FOUND;
   constructor(message: string, localizedMessageKey: string, params?: any) {
     super(message, localizedMessageKey, params);
     this.name = 'NotFoundException';
@@ -32,7 +28,7 @@ export class NotFoundException extends LocalizedException {
 }
 
 export class SecurityException extends Error {
-  public readonly statusCode = STATUS_CODE_UNAUTHORIZED;
+  public readonly statusCode = StatusCodes.UNAUTHORIZED;
   constructor(message: string) {
     super(message);
     this.name = 'SecurityException';

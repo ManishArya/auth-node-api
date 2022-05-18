@@ -1,12 +1,15 @@
-import express from 'express';
-import PreferencesController from '../controllers/preferences.controller';
+import express, { NextFunction, Request, Response } from 'express';
 import verifyJwtToken from '../middlewares/verify-jwt-token';
-import PreferencesService from '../services/preferences.service';
 const router = express.Router();
-const preferencesController = new PreferencesController(new PreferencesService());
 
-router.get('/', verifyJwtToken, preferencesController.GetPreferences.bind(preferencesController));
-router.post('/setDarkTheme', verifyJwtToken, preferencesController.setDarkTheme.bind(preferencesController));
-router.post('/setLocale', verifyJwtToken, preferencesController.setLocale.bind(preferencesController));
+const resolveDependency = (methodName: string) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    return (req as any).scope.resolve('preferencesController')[methodName](req, res);
+  };
+};
+
+router.get('/', verifyJwtToken, resolveDependency('GetPreferences'));
+router.post('/setDarkTheme', verifyJwtToken, resolveDependency('setDarkTheme'));
+router.post('/setLocale', verifyJwtToken, resolveDependency('setLocale'));
 
 export default router;

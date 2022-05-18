@@ -1,17 +1,19 @@
-import { STATUS_CODE_NOCONTENT, STATUS_CODE_NOT_FOUND } from '../constants/status-code.const';
-import UserDal from '../data-access/user.dal';
+import { StatusCodes } from 'http-status-codes';
+import { QueryDAL } from '../data-access/query.dal';
 import ApiResponse from '../models/api-response';
+import IUser from '../models/IUser';
 import JwtHelper from '../utils/jwt-helper';
 import MailService from './mail.service';
 
 export default class UserService {
-  public currentUsername: string = '';
-  private readonly _userDAL: UserDal;
+  private readonly currentUsername: string;
+  private readonly _userDAL: QueryDAL<IUser>;
   private readonly _mailService: MailService;
 
-  constructor(private userDAL: UserDal, private mailService: MailService) {
+  constructor(private userDAL: QueryDAL<IUser>, private mailService: MailService, private username: string) {
     this._userDAL = userDAL;
     this._mailService = mailService;
+    this.currentUsername = username;
   }
 
   public async saveUser(userData: any) {
@@ -49,7 +51,7 @@ export default class UserService {
 
   public async deleteUser(username: string) {
     await this._userDAL.Delete({ username });
-    return new ApiResponse('User Deleted Successfully', STATUS_CODE_NOCONTENT);
+    return new ApiResponse('User Deleted Successfully', StatusCodes.NO_CONTENT);
   }
 
   private async updateUser(data: any) {
@@ -61,6 +63,6 @@ export default class UserService {
     if (user) {
       return new ApiResponse(user.toObject());
     }
-    return new ApiResponse('No User found', STATUS_CODE_NOT_FOUND);
+    return new ApiResponse('No User found', StatusCodes.NOT_FOUND);
   }
 }

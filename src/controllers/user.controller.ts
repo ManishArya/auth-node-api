@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { STATUS_CODE_SUCCESS } from '../constants/status-code.const';
+import { StatusCodes } from 'http-status-codes';
 import ApiResponse from '../models/api-response';
 import { InvalidOperationException } from '../models/Invalid-operation-exception';
 import AuthService from '../services/auth.service';
@@ -27,7 +27,6 @@ export default class UserController extends BaseController {
   };
 
   public EditProfile = async (req: Request, res: Response) => {
-    this._userService.currentUsername = req.currentUsername;
     const { username, name, email, mobile } = req.body;
     logger.info(`User.Edit beginning ${req.path}`);
     const result = await this._userService.editProfile({ username, name, email, mobile });
@@ -37,7 +36,6 @@ export default class UserController extends BaseController {
 
   public UpdateEmailAddress = async (req: Request, res: Response) => {
     const { password, email } = req.body;
-    this._userService.currentUsername = req.currentUsername;
 
     logger.info(`User.updateEmailAddress beginning ${req.path}`);
 
@@ -57,7 +55,6 @@ export default class UserController extends BaseController {
   };
 
   public UploadAvatar = async (req: Request, res: Response) => {
-    this._userService.currentUsername = req.currentUsername;
     const avatar = req.file as Express.Multer.File;
     const fileBytes = avatar?.buffer;
 
@@ -82,7 +79,6 @@ export default class UserController extends BaseController {
   };
 
   public RemoveAvatar = async (req: Request, res: Response) => {
-    this._userService.currentUsername = req.currentUsername;
     logger.info(`User.RemoveAvatar beginning ${req.path}`);
     const result = await this._userService.updateAvatar();
     logger.info(`User.RemoveAvatar returning`);
@@ -90,7 +86,6 @@ export default class UserController extends BaseController {
   };
 
   public GetProfile = async (req: Request, res: Response) => {
-    this._userService.currentUsername = req.currentUsername;
     logger.info(`User.GetProfile beginning ${req.path}`);
     const profile = await this._userService.getProfile();
     logger.info(`User.GetProfile returning`);
@@ -121,7 +116,7 @@ export default class UserController extends BaseController {
     const filter = { username };
     result = await this._authService.validateUser(filter, password, req.__('passwordWrong'));
 
-    if (result.statusCode === STATUS_CODE_SUCCESS) {
+    if (result.statusCode === StatusCodes.OK) {
       result = await this._userService.deleteUser(username);
     }
 

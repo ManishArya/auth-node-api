@@ -1,7 +1,7 @@
+import { asValue } from 'awilix';
 import { NextFunction, Request } from 'express';
 import i18n from 'i18n';
 import { JsonWebTokenError } from 'jsonwebtoken';
-import PreferencesManager from '../models/preferences-manager';
 import JwtHelper from '../utils/jwt-helper';
 import logger from '../utils/logger';
 
@@ -14,7 +14,10 @@ export default async (req: Request, res: any, next: NextFunction) => {
       const decodeToken = JwtHelper.verifyToken(token);
       logger.info(`User is authenticate againts Bearer scheme`);
       req.currentUsername = decodeToken.payload['username'];
-      const p = PreferencesManager.Current(req.currentUsername);
+      (req as any).scope.register({
+        username: asValue(req.currentUsername)
+      });
+      const p = (req as any).scope.resolve('preferencesManager');
       const locale = await p.getUserLocale();
       req.setLocale(locale);
       i18n.setLocale(locale);

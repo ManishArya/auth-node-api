@@ -6,6 +6,7 @@ import genericErrorHandler from './middlewares/errors/generic-error-handler';
 import logHandler from './middlewares/errors/log-handler';
 import validationHandler from './middlewares/errors/validation-handler';
 import db from './startup/db';
+import registerDependency from './startup/DI';
 import route from './startup/route';
 import logger from './utils/logger';
 
@@ -14,9 +15,12 @@ i18n.configure({
   directory: path.join(__dirname, '/locales')
 });
 
+const container = registerDependency();
+
 const app = express();
 
 app.use((req, res, next) => {
+  (req as any).scope = container.createScope();
   const listener = (err: any) => {
     if (!res.headersSent) next(err);
   };

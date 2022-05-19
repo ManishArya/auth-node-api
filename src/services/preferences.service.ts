@@ -1,24 +1,29 @@
+import PreferencesManager from '../manager/preferences-manager';
 import ApiResponse from '../models/api-response';
 import IPreferences from '../models/IPreferences';
-import PreferencesManager from '../models/preferences-manager';
 
 export default class PreferencesService {
-  public static currentUsername: string;
+  private readonly currentUsername: string = '';
+  private readonly _preferencesManager: PreferencesManager;
 
-  public static async getPreferences() {
-    const p = PreferencesManager.Current(this.currentUsername);
-    return Promise.resolve(new ApiResponse(await p.getUserPreferencesBySection<IPreferences>('preferences')));
+  constructor(private username: string, preferencesManager: PreferencesManager) {
+    this.currentUsername = username;
+    this._preferencesManager = preferencesManager;
   }
 
-  public static async setDarkTheme(enable: boolean): Promise<void> {
-    const p = PreferencesManager.Current(this.currentUsername);
-    await p.setDarkTheme(enable);
-    await p.update();
+  public async getPreferences() {
+    return Promise.resolve(
+      new ApiResponse(await this._preferencesManager.getUserPreferencesBySection<IPreferences>('preferences'))
+    );
   }
 
-  public static async setLocale(locale: string): Promise<void> {
-    const p = PreferencesManager.Current(this.currentUsername);
-    await p.setUserLocale(locale);
-    await p.update();
+  public async setDarkTheme(enable: boolean): Promise<void> {
+    await this._preferencesManager.setDarkTheme(enable);
+    await this._preferencesManager.update();
+  }
+
+  public async setLocale(locale: string): Promise<void> {
+    await this._preferencesManager.setUserLocale(locale);
+    await this._preferencesManager.update();
   }
 }

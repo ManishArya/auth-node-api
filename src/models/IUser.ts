@@ -1,4 +1,6 @@
-export default interface IUser {
+import IBaseSchema from './IBaseSchema';
+
+export default interface IUser extends IBaseSchema {
   name: string;
   email: string;
   mobile: string;
@@ -9,8 +11,6 @@ export default interface IUser {
   hasLocked: boolean;
   failureAttempt: number;
   lockedAt: Date | null;
-  createdBy: string;
-  lastUpdatedBy: string;
   isUserLocked: boolean;
   isPasswordValid: (password: string) => Promise<boolean>;
   isOldPasswordAndCurrentPasswordMatch: (password: string) => Promise<boolean>;

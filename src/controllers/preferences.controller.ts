@@ -1,43 +1,44 @@
-import express from 'express';
-import verifyJwtToken from '../middlewares/verify-jwt-token';
+import { Request, Response } from 'express';
 import ApiResponse from '../models/api-response';
 import PreferencesService from '../services/preferences.service';
 import logger from '../utils/logger';
 import BaseController from './base.controller';
 
-const router = express.Router();
+export default class PreferencesController extends BaseController {
+  private readonly _preferencesService: PreferencesService;
 
-router.get('/', verifyJwtToken, async (req, res) => {
-  logger.info(`Preferences.Get beginning ${req.path}`);
+  constructor(private preferencesService: PreferencesService) {
+    super();
+    this._preferencesService = preferencesService;
+  }
 
-  PreferencesService.currentUsername = req.currentUsername;
-  const response = await PreferencesService.getPreferences();
+  public GetPreferences = async (req: Request, res: Response) => {
+    logger.info(`Preferences.Get beginning ${req.path}`);
 
-  logger.info(`Preferences.Get returning`);
+    const response = await this._preferencesService.getPreferences();
 
-  return BaseController.sendResponse(res, response);
-});
+    logger.info(`Preferences.Get returning`);
 
-router.post('/setDarkTheme', verifyJwtToken, async (req, res) => {
-  logger.info(`Preferences.setDarkTheme beginning ${req.path}`);
+    return this.sendResponse(res, response);
+  };
 
-  PreferencesService.currentUsername = req.currentUsername;
-  await PreferencesService.setDarkTheme(req.body.enableDarkTheme);
+  public setDarkTheme = async (req: Request, res: Response) => {
+    logger.info(`Preferences.setDarkTheme beginning ${req.path}`);
 
-  logger.info(`Preferences.setDarkTheme returning`);
+    await this._preferencesService.setDarkTheme(req.body.enableDarkTheme);
 
-  return BaseController.sendResponse(res, new ApiResponse('update sucessfully'));
-});
+    logger.info(`Preferences.setDarkTheme returning`);
 
-router.post('/setLocale', verifyJwtToken, async (req, res) => {
-  logger.info(`Preferences.setLocale beginning ${req.path}`);
+    return this.sendResponse(res, new ApiResponse('update sucessfully'));
+  };
 
-  PreferencesService.currentUsername = req.currentUsername;
-  await PreferencesService.setLocale(req.body.locale);
+  public setLocale = async (req: Request, res: Response) => {
+    logger.info(`Preferences.setLocale beginning ${req.path}`);
 
-  logger.info(`Preferences.setLocale returning`);
+    await this._preferencesService.setLocale(req.body.locale);
 
-  return BaseController.sendResponse(res, new ApiResponse('update sucessfully'));
-});
+    logger.info(`Preferences.setLocale returning`);
 
-export default router;
+    return this.sendResponse(res, new ApiResponse('update sucessfully'));
+  };
+}

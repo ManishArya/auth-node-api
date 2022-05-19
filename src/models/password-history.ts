@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
+import IPasswordHistorySchema from './IPasswordHistorySchema';
 
-const passwordHistorySchema = new mongoose.Schema(
+const passwordHistorySchema = new mongoose.Schema<IPasswordHistorySchema>(
   {
     username: {
       type: String
@@ -14,4 +15,4 @@ const passwordHistorySchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model('password-history', passwordHistorySchema);
+export default mongoose.model<IPasswordHistorySchema>('password-history', passwordHistorySchema);

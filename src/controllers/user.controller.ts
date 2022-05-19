@@ -1,93 +1,126 @@
-import express from 'express';
-import recaptchVerify from '../middlewares/recaptch-verify';
-import verifyJwtToken from '../middlewares/verify-jwt-token';
+import { Request, Response } from 'express';
+import { StatusCodes } from 'http-status-codes';
 import ApiResponse from '../models/api-response';
 import { InvalidOperationException } from '../models/Invalid-operation-exception';
 import AuthService from '../services/auth.service';
 import UserService from '../services/user.service';
-import upload from '../utils/image-uploader';
 import logger from '../utils/logger';
 import MagicNumberUtility from '../utils/magic-number/magic-number-utility';
 import BaseController from './base.controller';
-const router = express.Router();
 
-router.post('/', recaptchVerify, async (req, res) => {
-  const { username, name, email, password } = req.body;
-  logger.info(`User.Newuser beginning ${req.path}`);
-  const result = await UserService.saveUser({ username, name, email, password });
-  logger.info(`User.NewUser returning`);
-  return BaseController.sendResponse(res, result);
-});
+export default class UserController extends BaseController {
+  private readonly _authService: AuthService;
+  private readonly _userService: UserService;
 
-router.put('/', verifyJwtToken, async (req, res) => {
-  UserService.currentUsername = req.currentUsername;
-  const { username, name, email, mobile } = req.body;
-  logger.info(`User.Edit beginning ${req.path}`);
-  const result = await UserService.editProfile({ username, name, email, mobile });
-  logger.info(`User.Edit returning`);
-  return BaseController.sendResponse(res, result);
-});
-
-router.put('/updateEmailAddress', verifyJwtToken, async (req, res) => {
-  const { password, email } = req.body;
-  UserService.currentUsername = req.currentUsername;
-
-  logger.info(`User.updateEmailAddress beginning ${req.path}`);
-
-  let result: ApiResponse;
-  const filter = { username: req.currentUsername };
-  result = await AuthService.validateUser(filter, password, req.__('passwordWrong'));
-
-  if (!result.isSuccess) {
-    return BaseController.sendResponse(res, new ApiResponse({ password: result.content }, result.statusCode));
+  constructor(private authService: AuthService, private userService: UserService) {
+    super();
+    this._authService = authService;
+    this._userService = userService;
   }
 
-  result = await UserService.updateEmailAddress(email);
+  public SaveUser = async (req: Request, res: Response) => {
+    const { username, name, email, password } = req.body;
+    logger.info(`User.Newuser beginning ${req.path}`);
+    const result = await this._userService.saveUser({ username, name, email, password });
+    logger.info(`User.NewUser returning`);
+    return this.sendResponse(res, result);
+  };
 
-  logger.info(`User.updateEmailAddress returning`);
+  public EditProfile = async (req: Request, res: Response) => {
+    const { username, name, email, mobile } = req.body;
+    logger.info(`User.Edit beginning ${req.path}`);
+    const result = await this._userService.editProfile({ username, name, email, mobile });
+    logger.info(`User.Edit returning`);
+    return this.sendResponse(res, result);
+  };
 
-  return BaseController.sendResponse(res, result);
-});
+  public UpdateEmailAddress = async (req: Request, res: Response) => {
+    const { password, email } = req.body;
 
-router.put('/uploadAvatar', verifyJwtToken, upload().single('avatar'), async (req, res) => {
-  UserService.currentUsername = req.currentUsername;
-  const avatar = req.file as Express.Multer.File;
-  const fileBytes = avatar?.buffer;
+    logger.info(`User.updateEmailAddress beginning ${req.path}`);
 
-  if (!fileBytes) {
-    throw new InvalidOperationException('poster have no content', 'posterContentValidation');
-  }
+    let result: ApiResponse;
+    const filter = { username: req.currentUsername };
+    result = await this._authService.validateUser(filter, password, req.__('passwordWrong'));
 
-  logger.info(`User.UploadAvatar beginning ${req.path}`);
+    if (!result.isSuccess) {
+      return this.sendResponse(res, new ApiResponse({ password: result.content }, result.statusCode));
+    }
 
-  const m = new MagicNumberUtility(fileBytes, avatar.mimetype);
+    result = await this._userService.updateEmailAddress(email);
 
-  if (!m.isImageType) {
-    throw new InvalidOperationException(
-      'Poster contents don’t match the file extension.',
-      'posterContentCheckValidation'
-    );
-  }
+    logger.info(`User.updateEmailAddress returning`);
 
-  const result = await UserService.updateAvatar(fileBytes);
-  logger.info(`User.UploadAvatar returning`);
-  return BaseController.sendResponse(res, result);
-});
+    return this.sendResponse(res, result);
+  };
 
-router.delete('/removeAvatar', verifyJwtToken, async (req, res) => {
-  UserService.currentUsername = req.currentUsername;
-  logger.info(`User.RemoveAvatar beginning ${req.path}`);
-  const result = await UserService.updateAvatar();
-  logger.info(`User.RemoveAvatar returning`);
-  return BaseController.sendResponse(res, result);
-});
+  public UploadAvatar = async (req: Request, res: Response) => {
+    const avatar = req.file as Express.Multer.File;
+    const fileBytes = avatar?.buffer;
 
-router.get('/', verifyJwtToken, async (req, res) => {
-  UserService.currentUsername = req.currentUsername;
-  logger.info(`User.GetProfile beginning ${req.path}`);
-  const profile = await UserService.getProfile();
-  logger.info(`User.GetProfile returning`);
-  return BaseController.sendResponse(res, profile);
-});
+    if (!fileBytes) {
+      throw new InvalidOperationException('poster have no content', 'posterContentValidation');
+    }
 
-export default router;
+    logger.info(`User.UploadAvatar beginning ${req.path}`);
+
+    const m = new MagicNumberUtility(fileBytes, avatar.mimetype);
+
+    if (!m.isImageType) {
+      throw new InvalidOperationException(
+        'Poster contents don’t match the file extension.',
+        'posterContentCheckValidation'
+      );
+    }
+
+    const result = await this._userService.updateAvatar(fileBytes);
+    logger.info(`User.UploadAvatar returning`);
+    return this.sendResponse(res, result);
+  };
+
+  public RemoveAvatar = async (req: Request, res: Response) => {
+    logger.info(`User.RemoveAvatar beginning ${req.path}`);
+    const result = await this._userService.updateAvatar();
+    logger.info(`User.RemoveAvatar returning`);
+    return this.sendResponse(res, result);
+  };
+
+  public GetProfile = async (req: Request, res: Response) => {
+    logger.info(`User.GetProfile beginning ${req.path}`);
+    const profile = await this._userService.getProfile();
+    logger.info(`User.GetProfile returning`);
+    return this.sendResponse(res, profile);
+  };
+
+  public GetAllUsers = async (req: Request, res: Response) => {
+    logger.info(`GetAllUsers.All beginning ${req.path}`);
+    const response = await this._userService.getUsers();
+    logger.info(`ManageUser.All returning`);
+    return this.sendResponse(res, response);
+  };
+
+  public DeleteUser = async (req: Request, res: Response) => {
+    const username = req.params.username ?? req.currentUsername;
+    logger.info(`ManageUser.Delete beginning ${req.path} ${req.route}`);
+    const result = await this._userService.deleteUser(username);
+    logger.info(`ManageUser.Delete returning`);
+    return this.sendResponse(res, result);
+  };
+
+  public DeleteUserAccount = async (req: Request, res: Response) => {
+    const password = req.body.password;
+    const username = req.currentUsername;
+    logger.info(`ManageUser.DeleteUserAccount beginning ${req.path}`);
+
+    let result: ApiResponse;
+    const filter = { username };
+    result = await this._authService.validateUser(filter, password, req.__('passwordWrong'));
+
+    if (result.statusCode === StatusCodes.OK) {
+      result = await this._userService.deleteUser(username);
+    }
+
+    logger.info(`ManageUser.DeleteUserAccount returning`);
+    return this.sendResponse(res, result);
+  };
+}

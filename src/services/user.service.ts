@@ -1,61 +1,68 @@
-import { STATUS_CODE_NOCONTENT, STATUS_CODE_NOT_FOUND } from '../constants/status-code.const';
-import UserDal from '../data-access/user.dal';
+import { StatusCodes } from 'http-status-codes';
+import QueryDAL from '../data-access/query.dal';
 import ApiResponse from '../models/api-response';
+import IUser from '../models/IUser';
 import JwtHelper from '../utils/jwt-helper';
-import { Mail } from '../utils/mail';
+import MailService from './mail.service';
 
 export default class UserService {
-  public static currentUsername: string;
+  private readonly currentUsername: string;
+  private readonly _userDAL: QueryDAL<IUser>;
+  private readonly _mailService: MailService;
 
-  public static async saveUser(userData: any) {
-    const user = await UserDal.saveUser(userData);
+  constructor(private userDAL: QueryDAL<IUser>, private mailService: MailService, private username: string) {
+    this._userDAL = userDAL;
+    this._mailService = mailService;
+    this.currentUsername = username;
+  }
+
+  public async saveUser(userData: any) {
+    const user = await this._userDAL.Save(userData);
     const token = JwtHelper.generateToken(user.username, user.isAdmin);
-    const mail = new Mail({
-      subject: `Your, ${user.name}, account has created successfully `,
-      to: user.email
-    });
-    await mail.send();
+    this._mailService.subject = `Your, ${user.name}, account has created successfully `;
+    this._mailService.to = user.email;
+    await this._mailService.send();
     return new ApiResponse({ token });
   }
 
-  public static async editProfile(userData: any) {
+  public async editProfile(userData: any) {
     return await this.updateUser(userData);
   }
 
-  public static async updateAvatar(fileBytes?: Buffer) {
+  public async updateAvatar(fileBytes?: Buffer) {
     return await this.updateUser({ avatar: fileBytes });
   }
 
-  public static async updateEmailAddress(email: string) {
+  public async updateEmailAddress(email: string) {
     return await this.updateUser({ email });
   }
 
-  public static async getProfile() {
+  public async getProfile() {
     const username = this.currentUsername;
-    const user = await UserDal.getUserByUsername(username);
+    const user = await this._userDAL.GetSingleRecord({ username });
     return new ApiResponse(user?.toObject());
   }
 
-  public static async getUsers() {
-    let users = await UserDal.getUsers();
+  public async getUsers() {
+    let users = await this._userDAL.GetAllRecords();
     users = users.map((u: any) => u.toObject());
     return new ApiResponse(users);
   }
 
-  public static async deleteUser(username: string) {
-    await UserDal.deleteUser(username);
-    return new ApiResponse('User Deleted Successfully', STATUS_CODE_NOCONTENT);
+  public async deleteUser(username: string) {
+    await this._userDAL.Delete({ username });
+    return new ApiResponse('User Deleted Successfully', StatusCodes.NO_CONTENT);
   }
 
-  private static async updateUser(data: any) {
+  private async updateUser(data: any) {
     const username = this.currentUsername;
     data.lastUpdatedBy = username?.toLowerCase();
 
-    const user = await UserDal.updateUser({ username }, data);
+    const user = await this._userDAL.FindAndUpdate({ username }, data);
 
     if (user) {
       return new ApiResponse(user.toObject());
     }
-    return new ApiResponse('No User found', STATUS_CODE_NOT_FOUND);
+    return new ApiResponse('No User found', StatusCodes.NOT_FOUND);
   }
 }

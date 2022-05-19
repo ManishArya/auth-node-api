@@ -1,34 +1,44 @@
 import bcrypt from 'bcrypt';
+import { StatusCodes } from 'http-status-codes';
 import { __ } from 'i18n';
-import { STATUS_CODE_BAD_REQUEST, STATUS_CODE_NOT_FOUND, STATUS_CODE_SUCCESS } from '../constants/status-code.const';
-import PasswordHistoryDAL from '../data-access/password-history.dal';
-import UserDal from '../data-access/user.dal';
+import QueryDAL from '../data-access/query.dal';
 import { LoginResponseCode } from '../enums/login-response-code.enum';
 import ApiResponse from '../models/api-response';
 import AuthResponse from '../models/auth-response';
 import { InvalidOperationException } from '../models/Invalid-operation-exception';
+import IPasswordHistorySchema from '../models/IPasswordHistorySchema';
 import IUser from '../models/IUser';
-import UserInfo from '../models/user-info';
 import JwtHelper from '../utils/jwt-helper';
-import { Mail } from '../utils/mail';
+import MailService from './mail.service';
 
 export default class AuthService {
-  public static currentUser: UserInfo;
+  private readonly _userDAL: QueryDAL<IUser>;
+  private readonly _mailService: MailService;
+  private readonly _passwordHistoryDAL: QueryDAL<IPasswordHistorySchema>;
 
-  public static async validateUser(
+  constructor(
+    private userDAL: QueryDAL<IUser>,
+    private passwordHistoryDAL: QueryDAL<IPasswordHistorySchema>,
+    private mailService: MailService
+  ) {
+    this._userDAL = userDAL;
+    this._passwordHistoryDAL = passwordHistoryDAL;
+    this._mailService = mailService;
+  }
+
+  public async validateUser(
     filter: any,
     password: string,
     errorMessage = 'Credential is wrong !!!'
   ): Promise<AuthResponse> {
-    const user = await UserDal.getUser(filter);
-
+    const user = await this._userDAL.GetSingleRecord(filter);
     if (!user) {
       errorMessage = __('userNotFound');
-      return new AuthResponse(errorMessage, STATUS_CODE_NOT_FOUND, LoginResponseCode.NoUser);
+      return new AuthResponse(errorMessage, StatusCodes.NOT_FOUND, LoginResponseCode.NoUser);
     }
 
     if (user.isUserLocked) {
-      return new AuthResponse(__('userLocked'), STATUS_CODE_BAD_REQUEST, LoginResponseCode.locked);
+      return new AuthResponse(__('userLocked'), StatusCodes.BAD_REQUEST, LoginResponseCode.locked);
     }
 
     const isPasswordValid = await user.isPasswordValid(password);
@@ -36,42 +46,34 @@ export default class AuthService {
     await user.updateUserLockedInformation(isPasswordValid);
 
     if (isPasswordValid) {
-      return new AuthResponse(user, STATUS_CODE_SUCCESS, LoginResponseCode.successful);
+      return new AuthResponse(user, StatusCodes.OK, LoginResponseCode.successful);
     }
 
-    return new AuthResponse(errorMessage, STATUS_CODE_BAD_REQUEST, LoginResponseCode.unsuccessful);
+    return new AuthResponse(errorMessage, StatusCodes.BAD_REQUEST, LoginResponseCode.unsuccessful);
   }
 
-  public static async generateToken(user: IUser) {
+  public async generateToken(user: IUser) {
     const token = JwtHelper.generateToken(user.username, user.isAdmin);
     return new ApiResponse({ token });
   }
 
-  public static async sendPasswordResetLink(usernameOrEmail: string) {
-    const user = await UserDal.getLeanUser({ $or: [{ username: usernameOrEmail }, { email: usernameOrEmail }] });
+  public async sendPasswordResetLink(usernameOrEmail: string) {
+    const user = await this._userDAL.GetLeanSingleRecord({
+      $or: [{ username: usernameOrEmail }, { email: usernameOrEmail }]
+    });
     if (user) {
-      const mail = new Mail({
-        subject: 'Reset Password Link',
-        to: user.email,
-        text: ''
-      });
-      await mail.send();
-      return new ApiResponse(__('forgotPasswordInstruction'), STATUS_CODE_SUCCESS);
+      await this.sendEmail('Reset Password Link', user.email);
+      return new ApiResponse(__('forgotPasswordInstruction'), StatusCodes.OK);
     }
-    return new ApiResponse(__('userExistFailure'), STATUS_CODE_NOT_FOUND);
+    return new ApiResponse(__('userExistFailure'), StatusCodes.BAD_REQUEST);
   }
 
-  public static async changePassword(user: IUser, password: string) {
+  public async changePassword(user: IUser, password: string) {
     const isValid = await this.validateNewPassword(user, password);
     if (isValid) {
       await this.updatePassword(user, password);
-      const mail = new Mail({
-        subject: `Your, ${user.name}, Password has changed successfully`,
-        to: user.email,
-        text: ''
-      });
-      await mail.send();
-      return new ApiResponse('Password Changed Successfully', STATUS_CODE_SUCCESS);
+      await this.sendEmail(`Your, ${user.name}, Password has changed successfully`, user.email);
+      return new ApiResponse('Password Changed Successfully', StatusCodes.OK);
     }
     throw new InvalidOperationException(
       'This password may not be  one of recent changed password',
@@ -79,13 +81,19 @@ export default class AuthService {
     );
   }
 
-  private static async updatePassword(user: IUser, password: string) {
-    await PasswordHistoryDAL.savePassword(user.password, user.username);
+  private async sendEmail(subject: string, email: string): Promise<void> {
+    this._mailService.subject = subject;
+    this._mailService.to = email;
+    await this._mailService.send();
+  }
+
+  private async updatePassword(user: IUser, password: string) {
+    await this._passwordHistoryDAL.Save({ password: user.password, username: user.username } as IPasswordHistorySchema);
     user.password = password;
     await (user as any).save();
   }
 
-  private static async validateNewPassword(user: IUser, password: string) {
+  private async validateNewPassword(user: IUser, password: string) {
     const hasMatch = await user.isOldPasswordAndCurrentPasswordMatch(password);
 
     if (!hasMatch) {
@@ -97,8 +105,8 @@ export default class AuthService {
     throw new InvalidOperationException('Current password can not be same as old password', 'currentOldPassword');
   }
 
-  private static async checkPasswordHistory(username: string, password: string): Promise<boolean> {
-    const passwordHistory: any[] = await PasswordHistoryDAL.getPasswords(username);
+  private async checkPasswordHistory(username: string, password: string): Promise<boolean> {
+    const passwordHistory: any[] = await this._passwordHistoryDAL.GetNRecords(5, { username });
     const passwords = passwordHistory.map((p) => p.password);
     for (let i = 0; i < passwords.length; i++) {
       const isPasswordValid = await this.isPasswordValid(password, passwords[i]);
@@ -109,7 +117,7 @@ export default class AuthService {
     return Promise.resolve(false);
   }
 
-  private static async isPasswordValid(password: string, hashPassword: string): Promise<boolean> {
+  private async isPasswordValid(password: string, hashPassword: string): Promise<boolean> {
     if (password) {
       return await bcrypt.compare(password, hashPassword);
     }

@@ -1,7 +1,7 @@
 import { FilterQuery, Model, UpdateQuery } from 'mongoose';
 import IBaseSchema from '../models/IBaseSchema';
 
-export class QueryDAL<T extends IBaseSchema> {
+export default class QueryDAL<T extends IBaseSchema> {
   protected readonly DBSchema: Model<T>;
 
   constructor(schema: any) {

@@ -1,6 +1,6 @@
+import PreferencesManager from '../manager/preferences-manager';
 import ApiResponse from '../models/api-response';
 import IPreferences from '../models/IPreferences';
-import PreferencesManager from '../models/preferences-manager';
 
 export default class PreferencesService {
   private readonly currentUsername: string = '';

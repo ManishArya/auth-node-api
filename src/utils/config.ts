@@ -1,6 +1,6 @@
 import config from 'config';
 
-export class Config {
+export default class Config {
   public get Service(): string {
     return config.get('mail.service') as string;
   }

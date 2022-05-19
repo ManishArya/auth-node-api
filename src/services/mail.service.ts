@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer';
-import { Config } from '../utils/config';
+import Config from '../utils/config';
 import logger from '../utils/logger';
 
 export default class MailService {

@@ -1,6 +1,8 @@
 declare namespace Express {
-  interface Request {
+  interface Request extends Awilix {
     currentUsername: string;
-    scope: any;
+  }
+  interface Awilix {
+    scope: import('awilix').AwilixContainer;
   }
 }

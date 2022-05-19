@@ -1,26 +1,7 @@
-import { QueryDAL } from '../data-access/query.dal';
-import IPreferences from './IPreferences';
-import IPrefrencesSchema from './IPreferences-schema';
-
-interface IPreferenceManager {
-  getDarkTheme: () => Promise<boolean>;
-  getUserLocale: () => Promise<string>;
-  setDarkTheme: (enable: boolean) => Promise<void>;
-  setUserLocale: (locale: string) => Promise<void>;
-  update: () => Promise<void>;
-  getUserPreferencesBySection: <T>(section: ValueOf<SectionName>) => Promise<T>;
-}
-
-class SectionName {
-  public readonly _preferences = 'preferences';
-}
-
-class SectionKey {
-  public readonly _darkTheme = 'darkTheme';
-  public readonly _locale = 'locale';
-}
-
-type ValueOf<T> = T[keyof T];
+import QueryDAL from '../data-access/query.dal';
+import IPreferences from '../models/IPreferences';
+import IPrefrencesSchema from '../models/IPreferences-schema';
+import { IPreferenceManager, SectionKey, SectionName, ValueOf } from './IPreferences-manager';
 
 export default class PreferencesManager implements IPreferenceManager {
   private readonly _systemPreferences: Map<string, Map<string, string>> = new Map();

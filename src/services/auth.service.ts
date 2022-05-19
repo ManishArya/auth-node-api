@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import { StatusCodes } from 'http-status-codes';
 import { __ } from 'i18n';
-import { QueryDAL } from '../data-access/query.dal';
+import QueryDAL from '../data-access/query.dal';
 import { LoginResponseCode } from '../enums/login-response-code.enum';
 import ApiResponse from '../models/api-response';
 import AuthResponse from '../models/auth-response';
@@ -32,7 +32,6 @@ export default class AuthService {
     errorMessage = 'Credential is wrong !!!'
   ): Promise<AuthResponse> {
     const user = await this._userDAL.GetSingleRecord(filter);
-    console.log(user);
     if (!user) {
       errorMessage = __('userNotFound');
       return new AuthResponse(errorMessage, StatusCodes.NOT_FOUND, LoginResponseCode.NoUser);

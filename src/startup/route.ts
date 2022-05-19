@@ -1,4 +1,3 @@
-import { AwilixContainer } from 'awilix';
 import { Application } from 'express';
 import SwaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
@@ -9,7 +8,7 @@ import userRoute from '../routers/user.router';
 const swaggerOptionsJson = require('./../../swagger/swagger-options.json');
 const swaggerdoc = SwaggerJSDoc(swaggerOptionsJson);
 
-export default function (app: Application, container: AwilixContainer) {
+export default function (app: Application) {
   app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerdoc));
   app.use('/api', authRoute);
   app.use('/api/user', userRoute);

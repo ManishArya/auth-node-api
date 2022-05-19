@@ -1,18 +1,13 @@
-import express, { NextFunction, Request, Response } from 'express';
+import express from 'express';
+import resolveDependency from '../middlewares/dependency-resolver';
 import recaptchVerify from '../middlewares/recaptch-verify';
 import verifyJwtToken from '../middlewares/verify-jwt-token';
 const router = express.Router();
 
-const resolveDependency = (methodName: string) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    return (req as any).scope.resolve('authController')[methodName](req, res);
-  };
-};
+router.post('/token', recaptchVerify, resolveDependency('authController', 'Token'));
 
-router.post('/token', recaptchVerify, resolveDependency('Token'));
+router.post('/sendPasswordResetLink', recaptchVerify, resolveDependency('authController', 'ForgotPassword'));
 
-router.post('/sendPasswordResetLink', recaptchVerify, resolveDependency('ForgotPassword'));
-
-router.post('/changePassword', verifyJwtToken, resolveDependency('ChangePassword'));
+router.post('/changePassword', verifyJwtToken, resolveDependency('authController', 'ChangePassword'));
 
 export default router;

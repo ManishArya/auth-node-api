@@ -1,5 +1,5 @@
 import { StatusCodes } from 'http-status-codes';
-import { QueryDAL } from '../data-access/query.dal';
+import QueryDAL from '../data-access/query.dal';
 import ApiResponse from '../models/api-response';
 import IUser from '../models/IUser';
 import JwtHelper from '../utils/jwt-helper';

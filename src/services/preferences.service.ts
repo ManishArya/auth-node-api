@@ -6,7 +6,7 @@ export default class PreferencesService {
   private readonly currentUsername: string = '';
   private readonly _preferencesManager: PreferencesManager;
 
-  constructor(private username: string, preferencesManager: PreferencesManager) {
+  constructor(username: string, preferencesManager: PreferencesManager) {
     this.currentUsername = username;
     this._preferencesManager = preferencesManager;
   }

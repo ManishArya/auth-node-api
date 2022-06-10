@@ -10,7 +10,7 @@ export default class UserService {
   private readonly _userDAL: QueryDAL<IUser>;
   private readonly _mailService: MailService;
 
-  constructor(private userDAL: QueryDAL<IUser>, private mailService: MailService, private username: string) {
+  constructor(userDAL: QueryDAL<IUser>, mailService: MailService, username: string = '') {
     this._userDAL = userDAL;
     this._mailService = mailService;
     this.currentUsername = username;

@@ -17,9 +17,9 @@ export default class AuthService {
   private readonly _passwordHistoryDAL: QueryDAL<IPasswordHistorySchema>;
 
   constructor(
-    private userDAL: QueryDAL<IUser>,
-    private passwordHistoryDAL: QueryDAL<IPasswordHistorySchema>,
-    private mailService: MailService
+    userDAL: QueryDAL<IUser>,
+    passwordHistoryDAL: QueryDAL<IPasswordHistorySchema>,
+    mailService: MailService
   ) {
     this._userDAL = userDAL;
     this._passwordHistoryDAL = passwordHistoryDAL;

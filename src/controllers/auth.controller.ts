@@ -10,7 +10,7 @@ import BaseController from './base.controller';
 export default class AuthController extends BaseController {
   private readonly _authService: AuthService;
 
-  constructor(private authService: AuthService) {
+  constructor(authService: AuthService) {
     super();
     this._authService = authService;
   }
@@ -28,7 +28,7 @@ export default class AuthController extends BaseController {
     }
 
     logger.info(`Auth.Token returning`);
-    return this.sendResponse(res, result, loginResponseCode);
+    return this.SendResponse(res, result, loginResponseCode);
   };
 
   public ForgotPassword = async (req: Request, res: Response) => {
@@ -36,7 +36,7 @@ export default class AuthController extends BaseController {
     logger.info(`Auth.SendPasswordResetLink beginning ${req.path}`);
     const result = await this._authService.sendPasswordResetLink(usernameOrEmail);
     logger.info(`Auth.SendPasswordResetLink returning`);
-    return this.sendResponse(res, result);
+    return this.SendResponse(res, result);
   };
 
   public ChangePassword = async (req: Request, res: Response) => {
@@ -59,6 +59,6 @@ export default class AuthController extends BaseController {
     }
 
     logger.info(`Auth.ChangePassword returning`);
-    return this.sendResponse(res, result);
+    return this.SendResponse(res, result);
   };
 }

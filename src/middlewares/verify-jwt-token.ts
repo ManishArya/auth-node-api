@@ -2,9 +2,9 @@ import { asValue } from 'awilix';
 import { NextFunction, Request } from 'express';
 import i18n from 'i18n';
 import { JsonWebTokenError } from 'jsonwebtoken';
-import { IPreferenceManager } from '../manager/IPreferences-manager';
 import JwtHelper from '../utils/jwt-helper';
 import logger from '../utils/logger';
+import { IPreferenceManager } from './../manager/IPreferences-manager';
 
 export default async (req: Request, res: any, next: NextFunction) => {
   try {

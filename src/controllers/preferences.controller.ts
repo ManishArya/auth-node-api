@@ -7,7 +7,7 @@ import BaseController from './base.controller';
 export default class PreferencesController extends BaseController {
   private readonly _preferencesService: PreferencesService;
 
-  constructor(private preferencesService: PreferencesService) {
+  constructor(preferencesService: PreferencesService) {
     super();
     this._preferencesService = preferencesService;
   }
@@ -19,7 +19,7 @@ export default class PreferencesController extends BaseController {
 
     logger.info(`Preferences.Get returning`);
 
-    return this.sendResponse(res, response);
+    return this.SendResponse(res, response);
   };
 
   public setDarkTheme = async (req: Request, res: Response) => {
@@ -29,7 +29,7 @@ export default class PreferencesController extends BaseController {
 
     logger.info(`Preferences.setDarkTheme returning`);
 
-    return this.sendResponse(res, new ApiResponse('update sucessfully'));
+    return this.SendResponse(res, new ApiResponse('update sucessfully'));
   };
 
   public setLocale = async (req: Request, res: Response) => {
@@ -39,6 +39,6 @@ export default class PreferencesController extends BaseController {
 
     logger.info(`Preferences.setLocale returning`);
 
-    return this.sendResponse(res, new ApiResponse('update sucessfully'));
+    return this.SendResponse(res, new ApiResponse('update sucessfully'));
   };
 }

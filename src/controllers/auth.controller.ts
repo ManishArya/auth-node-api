@@ -20,11 +20,11 @@ export default class AuthController extends BaseController {
     logger.info(`Auth.Token beginning ${req.path}`);
     let result: ApiResponse;
     const filter = { $or: [{ username: usernameOrEmail }, { email: usernameOrEmail }] };
-    result = await this._authService.validateUser(filter, password);
+    result = await this._authService.ValidateUser(filter, password);
     const loginResponseCode = (result as AuthResponse).code;
     if (result.statusCode === StatusCodes.OK) {
       const user = result.content;
-      result = await this._authService.generateToken(user);
+      result = await this._authService.GenerateToken(user.toObject());
     }
 
     logger.info(`Auth.Token returning`);
@@ -34,7 +34,7 @@ export default class AuthController extends BaseController {
   public ForgotPassword = async (req: Request, res: Response) => {
     const { usernameOrEmail } = req.body;
     logger.info(`Auth.SendPasswordResetLink beginning ${req.path}`);
-    const result = await this._authService.sendPasswordResetLink(usernameOrEmail);
+    const result = await this._authService.SendPasswordResetLink(usernameOrEmail);
     logger.info(`Auth.SendPasswordResetLink returning`);
     return this.SendResponse(res, result);
   };
@@ -51,11 +51,11 @@ export default class AuthController extends BaseController {
 
     let result: ApiResponse;
     const filter = { username: currentUsername };
-    result = await this._authService.validateUser(filter, oldPassword, req.__('oldPasswordWrong'));
+    result = await this._authService.ValidateUser(filter, oldPassword, req.__('oldPasswordWrong'));
 
     if (result.statusCode === StatusCodes.OK) {
       const user = result.content;
-      result = await this._authService.changePassword(user, password);
+      result = await this._authService.ChangePassword(user, password);
     }
 
     logger.info(`Auth.ChangePassword returning`);

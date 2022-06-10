@@ -12,6 +12,7 @@ export default interface IUser extends IBaseSchema {
   failureAttempt: number;
   lockedAt: Date | null;
   isUserLocked: boolean;
+  roles: [];
   isPasswordValid: (password: string) => Promise<boolean>;
   isOldPasswordAndCurrentPasswordMatch: (password: string) => Promise<boolean>;
   updateUserLockedInformation: (isPasswordValid: boolean) => Promise<void>;

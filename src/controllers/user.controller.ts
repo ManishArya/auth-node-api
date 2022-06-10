@@ -21,7 +21,7 @@ export default class UserController extends BaseController {
   public SaveUser = async (req: Request, res: Response) => {
     const { username, name, email, password } = req.body;
     logger.info(`User.Newuser beginning ${req.path}`);
-    const result = await this._userService.saveUser({ username, name, email, password });
+    const result = await this._userService.SaveUser({ username, name, email, password });
     logger.info(`User.NewUser returning`);
     return this.SendResponse(res, result);
   };
@@ -29,7 +29,7 @@ export default class UserController extends BaseController {
   public EditProfile = async (req: Request, res: Response) => {
     const { username, name, email, mobile } = req.body;
     logger.info(`User.Edit beginning ${req.path}`);
-    const result = await this._userService.editProfile({ username, name, email, mobile });
+    const result = await this._userService.EditProfile({ username, name, email, mobile });
     logger.info(`User.Edit returning`);
     return this.SendResponse(res, result);
   };
@@ -41,13 +41,13 @@ export default class UserController extends BaseController {
 
     let result: ApiResponse;
     const filter = { username: req.currentUsername };
-    result = await this._authService.validateUser(filter, password, req.__('passwordWrong'));
+    result = await this._authService.ValidateUser(filter, password, req.__('passwordWrong'));
 
     if (!result.isSuccess) {
       return this.SendResponse(res, new ApiResponse({ password: result.content }, result.statusCode));
     }
 
-    result = await this._userService.updateEmailAddress(email);
+    result = await this._userService.UpdateEmailAddress(email);
 
     logger.info(`User.updateEmailAddress returning`);
 
@@ -73,28 +73,28 @@ export default class UserController extends BaseController {
       );
     }
 
-    const result = await this._userService.updateAvatar(fileBytes);
+    const result = await this._userService.UpdateAvatar(fileBytes);
     logger.info(`User.UploadAvatar returning`);
     return this.SendResponse(res, result);
   };
 
   public RemoveAvatar = async (req: Request, res: Response) => {
     logger.info(`User.RemoveAvatar beginning ${req.path}`);
-    const result = await this._userService.updateAvatar();
+    const result = await this._userService.UpdateAvatar();
     logger.info(`User.RemoveAvatar returning`);
     return this.SendResponse(res, result);
   };
 
   public GetProfile = async (req: Request, res: Response) => {
     logger.info(`User.GetProfile beginning ${req.path}`);
-    const profile = await this._userService.getProfile();
+    const profile = await this._userService.GetProfile();
     logger.info(`User.GetProfile returning`);
     return this.SendResponse(res, profile);
   };
 
   public GetAllUsers = async (req: Request, res: Response) => {
     logger.info(`GetAllUsers.All beginning ${req.path}`);
-    const response = await this._userService.getUsers();
+    const response = await this._userService.GetUsers();
     logger.info(`ManageUser.All returning`);
     return this.SendResponse(res, response);
   };
@@ -102,7 +102,7 @@ export default class UserController extends BaseController {
   public DeleteUser = async (req: Request, res: Response) => {
     const username = req.params.username ?? req.currentUsername;
     logger.info(`ManageUser.Delete beginning ${req.path} ${req.route}`);
-    const result = await this._userService.deleteUser(username);
+    const result = await this._userService.DeleteUser(username);
     logger.info(`ManageUser.Delete returning`);
     return this.SendResponse(res, result);
   };
@@ -114,10 +114,10 @@ export default class UserController extends BaseController {
 
     let result: ApiResponse;
     const filter = { username };
-    result = await this._authService.validateUser(filter, password, req.__('passwordWrong'));
+    result = await this._authService.ValidateUser(filter, password, req.__('passwordWrong'));
 
     if (result.statusCode === StatusCodes.OK) {
-      result = await this._userService.deleteUser(username);
+      result = await this._userService.DeleteUser(username);
     }
 
     logger.info(`ManageUser.DeleteUserAccount returning`);

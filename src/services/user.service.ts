@@ -16,40 +16,43 @@ export default class UserService {
     this.currentUsername = username;
   }
 
-  public async saveUser(userData: any) {
+  public async SaveUser(userData: any) {
+    userData.roles = [];
+    userData.roles.push({ name: 'user', _id: '62a0a21fb12ff26ed28e6874' });
     const user = await this._userDAL.Save(userData);
-    const token = JwtHelper.generateToken(user.username, user.isAdmin);
+    console.log(user);
+    const token = JwtHelper.generateToken(user.username, user.roles);
     this._mailService.subject = `Your, ${user.name}, account has created successfully `;
     this._mailService.to = user.email;
     await this._mailService.send();
     return new ApiResponse({ token });
   }
 
-  public async editProfile(userData: any) {
+  public async EditProfile(userData: any) {
     return await this.updateUser(userData);
   }
 
-  public async updateAvatar(fileBytes?: Buffer) {
+  public async UpdateAvatar(fileBytes?: Buffer) {
     return await this.updateUser({ avatar: fileBytes });
   }
 
-  public async updateEmailAddress(email: string) {
+  public async UpdateEmailAddress(email: string) {
     return await this.updateUser({ email });
   }
 
-  public async getProfile() {
+  public async GetProfile() {
     const username = this.currentUsername;
     const user = await this._userDAL.GetSingleRecord({ username });
     return new ApiResponse(user?.toObject());
   }
 
-  public async getUsers() {
+  public async GetUsers() {
     let users = await this._userDAL.GetAllRecords();
     users = users.map((u: any) => u.toObject());
     return new ApiResponse(users);
   }
 
-  public async deleteUser(username: string) {
+  public async DeleteUser(username: string) {
     await this._userDAL.Delete({ username });
     return new ApiResponse('User Deleted Successfully', StatusCodes.NO_CONTENT);
   }

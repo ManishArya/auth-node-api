@@ -11,19 +11,19 @@ export default class PreferencesService {
     this._preferencesManager = preferencesManager;
   }
 
-  public async getPreferences() {
+  public async GetPreferences() {
     return Promise.resolve(
-      new ApiResponse(await this._preferencesManager.getUserPreferencesBySection<IPreferences>('preferences'))
+      new ApiResponse(await this._preferencesManager.GetUserPreferencesBySection<IPreferences>('preferences'))
     );
   }
 
-  public async setDarkTheme(enable: boolean): Promise<void> {
-    await this._preferencesManager.setDarkTheme(enable);
-    await this._preferencesManager.update();
+  public async SetDarkTheme(enable: boolean): Promise<void> {
+    await this._preferencesManager.SetDarkTheme(enable);
+    await this._preferencesManager.Update();
   }
 
-  public async setLocale(locale: string): Promise<void> {
-    await this._preferencesManager.setUserLocale(locale);
-    await this._preferencesManager.update();
+  public async SetLocale(locale: string): Promise<void> {
+    await this._preferencesManager.SetUserLocale(locale);
+    await this._preferencesManager.Update();
   }
 }

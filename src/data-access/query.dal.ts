@@ -8,8 +8,12 @@ export default class QueryDAL<T extends IBaseSchema> {
     this.DBSchema = schema;
   }
 
+  public async GetSingleRecordWithPath(filterQuery: FilterQuery<T>, path: string) {
+    return await this.DBSchema.findOne(filterQuery).populate(path).exec();
+  }
+
   public async GetSingleRecord(filterQuery: FilterQuery<T>) {
-    return await this.DBSchema.findOne(filterQuery);
+    return await this.DBSchema.findOne(filterQuery).populate('roles').exec();
   }
 
   public async GetLeanSingleRecord(filterQuery: FilterQuery<T>): Promise<T> {

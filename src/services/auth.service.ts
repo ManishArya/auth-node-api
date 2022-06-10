@@ -8,6 +8,7 @@ import AuthResponse from '../models/auth-response';
 import { InvalidOperationException } from '../models/Invalid-operation-exception';
 import IPasswordHistorySchema from '../models/IPasswordHistorySchema';
 import IUser from '../models/IUser';
+import UserProfile from '../models/user-profile';
 import JwtHelper from '../utils/jwt-helper';
 import MailService from './mail.service';
 
@@ -26,7 +27,11 @@ export default class AuthService {
     this._mailService = mailService;
   }
 
-  public async validateUser(
+  public async GetUsersWithRoles(filter: any) {
+    return await this._userDAL.GetSingleRecordWithPath(filter, 'roles');
+  }
+
+  public async ValidateUser(
     filter: any,
     password: string,
     errorMessage = 'Credential is wrong !!!'
@@ -52,12 +57,12 @@ export default class AuthService {
     return new AuthResponse(errorMessage, StatusCodes.BAD_REQUEST, LoginResponseCode.unsuccessful);
   }
 
-  public async generateToken(user: IUser) {
-    const token = JwtHelper.generateToken(user.username, user.isAdmin);
+  public async GenerateToken(user: UserProfile) {
+    const token = JwtHelper.generateToken(user.username, user.roles);
     return new ApiResponse({ token });
   }
 
-  public async sendPasswordResetLink(usernameOrEmail: string) {
+  public async SendPasswordResetLink(usernameOrEmail: string) {
     const user = await this._userDAL.GetLeanSingleRecord({
       $or: [{ username: usernameOrEmail }, { email: usernameOrEmail }]
     });
@@ -68,7 +73,7 @@ export default class AuthService {
     return new ApiResponse(__('userExistFailure'), StatusCodes.BAD_REQUEST);
   }
 
-  public async changePassword(user: IUser, password: string) {
+  public async ChangePassword(user: IUser, password: string) {
     const isValid = await this.validateNewPassword(user, password);
     if (isValid) {
       await this.updatePassword(user, password);

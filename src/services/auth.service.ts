@@ -8,7 +8,7 @@ import AuthResponse from '../models/auth-response';
 import { InvalidOperationException } from '../models/Invalid-operation-exception';
 import IPasswordHistorySchema from '../models/IPasswordHistorySchema';
 import IUser from '../models/IUser';
-import UserProfile from '../models/user-profile';
+import UserInfo from '../models/user-info';
 import JwtHelper from '../utils/jwt-helper';
 import MailService from './mail.service';
 
@@ -27,16 +27,15 @@ export default class AuthService {
     this._mailService = mailService;
   }
 
-  public async GetUsersWithRoles(filter: any) {
-    return await this._userDAL.GetSingleRecordWithPath(filter, 'roles');
-  }
-
   public async ValidateUser(
     filter: any,
     password: string,
-    errorMessage = 'Credential is wrong !!!'
+    errorMessage = 'Credential is wrong !!!',
+    childPath = ''
   ): Promise<AuthResponse> {
-    const user = await this._userDAL.GetSingleRecord(filter);
+    const user = childPath
+      ? await this._userDAL.GetFilterRecordWithChild(filter, childPath)
+      : await this._userDAL.GetFilteredRecord(filter);
     if (!user) {
       errorMessage = __('userNotFound');
       return new AuthResponse(errorMessage, StatusCodes.NOT_FOUND, LoginResponseCode.NoUser);
@@ -57,7 +56,7 @@ export default class AuthService {
     return new AuthResponse(errorMessage, StatusCodes.BAD_REQUEST, LoginResponseCode.unsuccessful);
   }
 
-  public async GenerateToken(user: UserProfile) {
+  public async GenerateToken(user: UserInfo) {
     const token = JwtHelper.generateToken(user.username, user.roles);
     return new ApiResponse({ token });
   }
@@ -93,7 +92,10 @@ export default class AuthService {
   }
 
   private async updatePassword(user: IUser, password: string) {
-    await this._passwordHistoryDAL.Save({ password: user.password, username: user.username } as IPasswordHistorySchema);
+    await this._passwordHistoryDAL.SaveRecord({
+      password: user.password,
+      username: user.username
+    } as IPasswordHistorySchema);
     user.password = password;
     await (user as any).save();
   }

@@ -4,7 +4,7 @@ import moment from 'moment';
 import mongoose from 'mongoose';
 import IUser from './IUser';
 import role from './role-schema';
-import UserProfile from './user-profile';
+import UserInfo from './user-info';
 
 const userSchema = new mongoose.Schema<IUser>(
   {
@@ -81,7 +81,7 @@ const userSchema = new mongoose.Schema<IUser>(
     timestamps: true,
     toObject: {
       transform: function (doc: any, ret: any) {
-        return new UserProfile(ret);
+        return new UserInfo(ret);
       }
     }
   }

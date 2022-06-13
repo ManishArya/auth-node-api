@@ -89,7 +89,7 @@ export default class PreferencesManager implements IPreferenceManager {
         username
       };
 
-      const isExists = await this._preferencesDAL.CheckRecordExists(filter);
+      const isExists = await this._preferencesDAL.IsRecordExists(filter);
 
       const preference = {
         sectionName,
@@ -98,9 +98,9 @@ export default class PreferencesManager implements IPreferenceManager {
       } as IPrefrencesSchema;
 
       if (isExists) {
-        await this._preferencesDAL.Update(filter, preference);
+        await this._preferencesDAL.UpdateRecord(filter, preference);
       } else {
-        await this._preferencesDAL.Create(preference);
+        await this._preferencesDAL.CreateNewRecord(preference);
       }
     }
   }

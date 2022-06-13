@@ -3,7 +3,8 @@ import config from 'config';
 import moment from 'moment';
 import mongoose from 'mongoose';
 import IUser from './IUser';
-import UserProfile from './user-profile';
+import role from './role-schema';
+import UserInfo from './user-info';
 
 const userSchema = new mongoose.Schema<IUser>(
   {
@@ -69,7 +70,7 @@ const userSchema = new mongoose.Schema<IUser>(
           'Password should have at least 1 digit 1 upper case 1 lower case and 1 special characters and length should between 6 to 15'
       }
     },
-    roles: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Role' }],
+    roles: [{ type: mongoose.Schema.Types.ObjectId, ref: role }],
     hasLocked: { type: Boolean, default: false },
     failureAttempt: { type: Number, default: 0 },
     lockedAt: { type: Date },
@@ -80,7 +81,7 @@ const userSchema = new mongoose.Schema<IUser>(
     timestamps: true,
     toObject: {
       transform: function (doc: any, ret: any) {
-        return new UserProfile(ret);
+        return new UserInfo(ret);
       }
     }
   }

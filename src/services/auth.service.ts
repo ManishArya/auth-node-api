@@ -8,6 +8,7 @@ import AuthResponse from '../models/auth-response';
 import { InvalidOperationException } from '../models/Invalid-operation-exception';
 import IPasswordHistorySchema from '../models/IPasswordHistorySchema';
 import IUser from '../models/IUser';
+import UserInfo from '../models/user-info';
 import JwtHelper from '../utils/jwt-helper';
 import MailService from './mail.service';
 
@@ -26,12 +27,15 @@ export default class AuthService {
     this._mailService = mailService;
   }
 
-  public async validateUser(
+  public async ValidateUser(
     filter: any,
     password: string,
-    errorMessage = 'Credential is wrong !!!'
+    errorMessage = 'Credential is wrong !!!',
+    childPath = ''
   ): Promise<AuthResponse> {
-    const user = await this._userDAL.GetSingleRecord(filter);
+    const user = childPath
+      ? await this._userDAL.GetFilterRecordWithChild(filter, childPath)
+      : await this._userDAL.GetFilteredRecord(filter);
     if (!user) {
       errorMessage = __('userNotFound');
       return new AuthResponse(errorMessage, StatusCodes.NOT_FOUND, LoginResponseCode.NoUser);
@@ -52,12 +56,12 @@ export default class AuthService {
     return new AuthResponse(errorMessage, StatusCodes.BAD_REQUEST, LoginResponseCode.unsuccessful);
   }
 
-  public async generateToken(user: IUser) {
-    const token = JwtHelper.generateToken(user.username, user.isAdmin);
+  public async GenerateToken(user: UserInfo) {
+    const token = JwtHelper.generateToken(user.username, user.roles);
     return new ApiResponse({ token });
   }
 
-  public async sendPasswordResetLink(usernameOrEmail: string) {
+  public async SendPasswordResetLink(usernameOrEmail: string) {
     const user = await this._userDAL.GetLeanSingleRecord({
       $or: [{ username: usernameOrEmail }, { email: usernameOrEmail }]
     });
@@ -68,7 +72,7 @@ export default class AuthService {
     return new ApiResponse(__('userExistFailure'), StatusCodes.BAD_REQUEST);
   }
 
-  public async changePassword(user: IUser, password: string) {
+  public async ChangePassword(user: IUser, password: string) {
     const isValid = await this.validateNewPassword(user, password);
     if (isValid) {
       await this.updatePassword(user, password);
@@ -88,7 +92,10 @@ export default class AuthService {
   }
 
   private async updatePassword(user: IUser, password: string) {
-    await this._passwordHistoryDAL.Save({ password: user.password, username: user.username } as IPasswordHistorySchema);
+    await this._passwordHistoryDAL.SaveRecord({
+      password: user.password,
+      username: user.username
+    } as IPasswordHistorySchema);
     user.password = password;
     await (user as any).save();
   }

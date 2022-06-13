@@ -23,7 +23,7 @@ export default async (req: Request, res: any, next: NextFunction) => {
       });
 
       const p = req.scope.resolve<IPreferenceManager>('preferencesManager');
-      const locale = await p.getUserLocale();
+      const locale = await p.GetUserLocale();
 
       req.setLocale(locale);
       i18n.setLocale(locale);

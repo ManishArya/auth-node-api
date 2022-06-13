@@ -21,4 +21,4 @@ const preferencesSchema = new mongoose.Schema<IPrefrencesSchema>(
   }
 );
 
-export default mongoose.model<IPrefrencesSchema>('perference', preferencesSchema);
+export default mongoose.model<IPrefrencesSchema>('Preferences', preferencesSchema);

@@ -20,21 +20,20 @@ export default class AuthController extends BaseController {
     logger.info(`Auth.Token beginning ${req.path}`);
     let result: ApiResponse;
     const filter = { $or: [{ username: usernameOrEmail }, { email: usernameOrEmail }] };
-    result = await this._authService.validateUser(filter, password);
-    const loginResponseCode = (result as AuthResponse).code;
+    result = await this._authService.ValidateUser(filter, password, '', 'roles');
     if (result.statusCode === StatusCodes.OK) {
       const user = result.content;
-      result = await this._authService.generateToken(user);
+      result = await this._authService.GenerateToken(user.toObject());
     }
 
     logger.info(`Auth.Token returning`);
-    return this.SendResponse(res, result, loginResponseCode);
+    return this.SendResponse(res, result, (result as AuthResponse).code);
   };
 
   public ForgotPassword = async (req: Request, res: Response) => {
     const { usernameOrEmail } = req.body;
     logger.info(`Auth.SendPasswordResetLink beginning ${req.path}`);
-    const result = await this._authService.sendPasswordResetLink(usernameOrEmail);
+    const result = await this._authService.SendPasswordResetLink(usernameOrEmail);
     logger.info(`Auth.SendPasswordResetLink returning`);
     return this.SendResponse(res, result);
   };
@@ -42,7 +41,6 @@ export default class AuthController extends BaseController {
   public ChangePassword = async (req: Request, res: Response) => {
     logger.info(`Auth.ChangePassword beginning ${req.path}`);
 
-    const currentUsername = req.currentUsername;
     const { password, confirmPassword, oldPassword } = req.body;
 
     if (password?.localeCompare(confirmPassword) !== 0) {
@@ -50,12 +48,11 @@ export default class AuthController extends BaseController {
     }
 
     let result: ApiResponse;
-    const filter = { username: currentUsername };
-    result = await this._authService.validateUser(filter, oldPassword, req.__('oldPasswordWrong'));
+    const filter = { username: req.currentUsername };
+    result = await this._authService.ValidateUser(filter, oldPassword, req.__('oldPasswordWrong'));
 
     if (result.statusCode === StatusCodes.OK) {
-      const user = result.content;
-      result = await this._authService.changePassword(user, password);
+      result = await this._authService.ChangePassword(result.content, password);
     }
 
     logger.info(`Auth.ChangePassword returning`);

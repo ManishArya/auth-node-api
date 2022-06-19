@@ -4,7 +4,7 @@ import verifyJwtToken from '../middlewares/verify-jwt-token';
 
 const router = express.Router();
 
-router.get('/', verifyJwtToken, resolveDependency('preferencesController', 'GetPreferences'));
+router.get('/', verifyJwtToken, resolveDependency('preferencesController', 'getPreferences'));
 router.post('/setDarkTheme', verifyJwtToken, resolveDependency('preferencesController', 'setDarkTheme'));
 router.post('/setLocale', verifyJwtToken, resolveDependency('preferencesController', 'setLocale'));
 

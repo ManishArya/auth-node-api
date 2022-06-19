@@ -1,0 +1,58 @@
+[{
+  "_id": {
+    "$oid": "621a23239d7cdb1364e3709a"
+  },
+  "hasLocked": false,
+  "failureAttempt": 0,
+  "createdBy": "admin",
+  "lastUpdatedBy": "admin",
+  "username": "admin",
+  "name": "Manish Kumar Garg",
+  "email": "manisharya26@gmail.com",
+  "createdAt": {
+    "$date": {
+      "$numberLong": "1645880099070"
+    }
+  },
+  "updatedAt": {
+    "$date": {
+      "$numberLong": "1655133065673"
+    }
+  },
+  "__v": 1,
+  "mobile": "8700123064",
+  "lockedAt": null,
+  "avatar": null,
+  "roles": [
+    {
+      "$oid": "62a0a206b12ff26ed28e6873"
+    }
+  ]
+},{
+  "_id": {
+    "$oid": "62a748daa723c11438d408cf"
+  },
+  "roles": [
+    {
+      "$oid": "62a0a21fb12ff26ed28e6874"
+    }
+  ],
+  "hasLocked": false,
+  "failureAttempt": 0,
+  "createdBy": "manish",
+  "lastUpdatedBy": "manish",
+  "username": "manish",
+  "name": "manish",
+  "email": "m@m.com",
+  "createdAt": {
+    "$date": {
+      "$numberLong": "1655130330239"
+    }
+  },
+  "updatedAt": {
+    "$date": {
+      "$numberLong": "1655130330239"
+    }
+  },
+  "__v": 0
+}]

@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import IPasswordHistorySchema from './IPasswordHistorySchema';
+import IPasswordHistorySchema from './interfaces/password-history-schema';
 
 const passwordHistorySchema = new mongoose.Schema<IPasswordHistorySchema>(
   {

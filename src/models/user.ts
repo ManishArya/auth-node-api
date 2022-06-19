@@ -2,11 +2,11 @@ import bcrypt from 'bcrypt';
 import config from 'config';
 import moment from 'moment';
 import mongoose from 'mongoose';
-import IUser from './IUser';
-import role from './role-schema';
-import UserInfo from './user-info';
+import IUserSchema from './interfaces/user-schema';
+import Role from './role';
+import UserProfile from './user-profile';
 
-const userSchema = new mongoose.Schema<IUser>(
+const userSchema = new mongoose.Schema<IUserSchema>(
   {
     name: {
       type: String,
@@ -70,7 +70,8 @@ const userSchema = new mongoose.Schema<IUser>(
           'Password should have at least 1 digit 1 upper case 1 lower case and 1 special characters and length should between 6 to 15'
       }
     },
-    roles: [{ type: mongoose.Schema.Types.ObjectId, ref: role }],
+    isAdmin: { type: Boolean, default: false },
+    roles: [{ type: mongoose.Schema.Types.ObjectId, ref: Role }],
     hasLocked: { type: Boolean, default: false },
     failureAttempt: { type: Number, default: 0 },
     lockedAt: { type: Date },
@@ -81,7 +82,7 @@ const userSchema = new mongoose.Schema<IUser>(
     timestamps: true,
     toObject: {
       transform: function (doc: any, ret: any) {
-        return new UserInfo(ret);
+        return new UserProfile(ret);
       }
     }
   }
@@ -131,6 +132,11 @@ userSchema.pre('save', async function (next) {
   const self = this as any;
   self.createdBy = self.username?.toLowerCase();
   self.lastUpdatedBy = self.createdBy;
+
+  if (self.isNew) {
+    self.roles.push({ name: 'user', _id: '62a0a21fb12ff26ed28e6874' });
+  }
+
   if (self.isModified('password')) {
     const password = self.password;
     self.password = await bcrypt.hash(password, 10);
@@ -152,4 +158,4 @@ function getLockedPeriod() {
 
 //#endregion
 
-export default mongoose.model<IUser>('user', userSchema);
+export default mongoose.model<IUserSchema>('user', userSchema);

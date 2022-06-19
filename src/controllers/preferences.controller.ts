@@ -12,33 +12,33 @@ export default class PreferencesController extends BaseController {
     this._preferencesService = preferencesService;
   }
 
-  public GetPreferences = async (req: Request, res: Response) => {
-    logger.info(`Preferences.Get beginning ${req.path}`);
+  public getPreferences = async (req: Request, res: Response) => {
+    logger.info(`Preferences.getPreferences beginning ${req.path}`);
 
-    const response = await this._preferencesService.GetPreferences();
+    const response = await this._preferencesService.getPreferences();
 
-    logger.info(`Preferences.Get returning`);
+    logger.info(`Preferences.getPreferences returning`);
 
-    return this.SendResponse(res, response);
+    return this.sendResponse(res, response);
   };
 
   public setDarkTheme = async (req: Request, res: Response) => {
     logger.info(`Preferences.setDarkTheme beginning ${req.path}`);
 
-    await this._preferencesService.SetDarkTheme(req.body.enableDarkTheme);
+    await this._preferencesService.setDarkTheme(req.body.enableDarkTheme);
 
     logger.info(`Preferences.setDarkTheme returning`);
 
-    return this.SendResponse(res, new ApiResponse('update sucessfully'));
+    return this.sendResponse(res, new ApiResponse('update sucessfully'));
   };
 
   public setLocale = async (req: Request, res: Response) => {
     logger.info(`Preferences.setLocale beginning ${req.path}`);
 
-    await this._preferencesService.SetLocale(req.body.locale);
+    await this._preferencesService.setLocale(req.body.locale);
 
     logger.info(`Preferences.setLocale returning`);
 
-    return this.SendResponse(res, new ApiResponse('update sucessfully'));
+    return this.sendResponse(res, new ApiResponse('update sucessfully'));
   };
 }

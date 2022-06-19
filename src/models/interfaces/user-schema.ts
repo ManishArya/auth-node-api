@@ -1,10 +1,11 @@
-import IBaseSchema from './IBaseSchema';
+import BaseSchema from './base-schema';
+import Role from './Role';
 
-export default interface IUser extends IBaseSchema {
+export default interface IUserSchema extends BaseSchema {
   name: string;
   email: string;
   mobile: string;
-  photo: Buffer;
+  avatar: Buffer;
   username: string;
   password: string;
   isAdmin: boolean;
@@ -12,7 +13,7 @@ export default interface IUser extends IBaseSchema {
   failureAttempt: number;
   lockedAt: Date | null;
   isUserLocked: boolean;
-  roles: [];
+  roles: Role[];
   isPasswordValid: (password: string) => Promise<boolean>;
   isOldPasswordAndCurrentPasswordMatch: (password: string) => Promise<boolean>;
   updateUserLockedInformation: (isPasswordValid: boolean) => Promise<void>;

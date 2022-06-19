@@ -1,65 +1,67 @@
-import { FilterQuery, Model, UpdateQuery } from 'mongoose';
-import IBaseSchema from '../models/IBaseSchema';
+import { FilterQuery, Model, PopulateOptions, UpdateQuery } from 'mongoose';
+import BaseSchema from '../models/interfaces/base-schema';
 
-export default class QueryDAL<T extends IBaseSchema> {
-  protected readonly DBSchema: Model<T>;
+export default class QueryDAL<T extends BaseSchema> {
+  protected readonly _db: Model<T>;
 
-  constructor(schema: Model<T>) {
-    this.DBSchema = schema;
+  constructor(db: Model<T>) {
+    this._db = db;
   }
 
-  public async GetFilteredRecord(filterQuery: FilterQuery<T>) {
-    return await this.DBSchema.findOne(filterQuery);
+  public async getFilterRecord(filterQuery: FilterQuery<T>) {
+    return await this._db.findOne(filterQuery);
   }
 
-  public async GetFilterRecordWithChild(filterQuery: FilterQuery<T>, path: string) {
-    return await this.DBSchema.findOne(filterQuery).populate(path).exec();
+  public async getFilterRecordWithAllRefs(filterQuery: FilterQuery<T>, options: PopulateOptions) {
+    return await this._db.findOne(filterQuery).populate(options).lean().exec();
   }
 
-  public async GetLeanSingleRecord(filterQuery: FilterQuery<T>): Promise<T> {
-    return await this.DBSchema.findOne(filterQuery).lean();
+  public async getFilterLeanRecord(filterQuery: FilterQuery<T>): Promise<T> {
+    return await this._db.findOne(filterQuery).lean();
   }
 
-  public async GetNRecords(n: number, filterQuery: FilterQuery<T>) {
-    return await this.DBSchema.find(filterQuery).lean().limit(n);
+  public async getNFilterLeanRecords(n: number, filterQuery: FilterQuery<T>) {
+    return await this._db.find(filterQuery).lean().limit(n);
   }
 
-  public async GetFilteredRecords(filterQuery: FilterQuery<T>) {
-    return await this.DBSchema.find(filterQuery);
+  public async getFilterRecords(filterQuery: FilterQuery<T>) {
+    return await this._db.find(filterQuery);
   }
 
-  public async GetRecords() {
-    return await this.DBSchema.find();
+  public async getRecords() {
+    return await this._db.find();
   }
 
-  public async DeleteRecord(filterQuery: FilterQuery<T>) {
-    return await this.DBSchema.findOneAndDelete(filterQuery);
+  public async findAndDeleteRecord(filterQuery: FilterQuery<T>) {
+    return await this._db.findOneAndDelete(filterQuery);
   }
 
-  public async IsRecordExists(filterQuery: FilterQuery<T>) {
-    return await this.DBSchema.exists(filterQuery);
+  public async isRecordExists(filterQuery: FilterQuery<T>) {
+    return await this._db.exists(filterQuery);
   }
 
-  public async SaveRecord(record: T) {
-    const newDbSchema = new this.DBSchema(record);
-    return (await newDbSchema.save()) as unknown as T;
+  public async saveRecord(record: Partial<T>) {
+    const db = new this._db(record);
+    return await db.save();
   }
 
-  public async FindAndUpdateRecord(filterQuery: FilterQuery<T>, updateQuery: UpdateQuery<T>) {
-    return await this.DBSchema.findOneAndUpdate(filterQuery, updateQuery, {
-      returnOriginal: false,
-      runValidators: true
-    }).lean();
+  public async findAndUpdateLeanRecord(filterQuery: FilterQuery<T>, updateQuery: UpdateQuery<T>) {
+    return await this._db
+      .findOneAndUpdate(filterQuery, updateQuery, {
+        returnOriginal: false,
+        runValidators: true
+      })
+      .lean();
   }
 
-  public async UpdateRecord(filterQuery: FilterQuery<T>, updateQuery: UpdateQuery<T>) {
-    return await this.DBSchema.updateOne(filterQuery, updateQuery, {
+  public async updateRecord(filterQuery: FilterQuery<T>, updateQuery: UpdateQuery<T>) {
+    return await this._db.updateOne(filterQuery, updateQuery, {
       returnOriginal: false,
       runValidators: true
     });
   }
 
-  public async CreateNewRecord(document: T) {
-    return await this.DBSchema.create(document);
+  public async createNewRecord(document: T) {
+    return await this._db.create(document);
   }
 }

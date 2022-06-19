@@ -6,19 +6,20 @@ import upload from '../utils/image-uploader';
 
 const router = express.Router();
 
-router.post('/', recaptchVerify, resolveDependency('userController', 'SaveUser'));
-router.put('/', verifyJwtToken, resolveDependency('userController', 'EditProfile'));
-router.put('/updateEmailAddress', verifyJwtToken, resolveDependency('userController', 'UpdateEmailAddress'));
+router.post('/', recaptchVerify, resolveDependency('userController', 'saveUser'));
+router.put('/', verifyJwtToken, resolveDependency('userController', 'editProfile'));
+router.put('/updateEmailAddress', verifyJwtToken, resolveDependency('userController', 'updateEmailAddress'));
 router.put(
   '/uploadAvatar',
   verifyJwtToken,
   upload().single('avatar'),
-  resolveDependency('userController', 'UploadAvatar')
+  resolveDependency('userController', 'uploadAvatar')
 );
-router.delete('/removeAvatar', verifyJwtToken, resolveDependency('userController', 'RemoveAvatar'));
-router.get('/', verifyJwtToken, resolveDependency('userController', 'GetProfile'));
-router.get('/all', verifyJwtToken, resolveDependency('userController', 'GetAllUsers'));
-router.delete('/:username?', verifyJwtToken, resolveDependency('userController', 'DeleteUser'));
-router.post('/deleteUserAccount', verifyJwtToken, resolveDependency('userController', 'DeleteUserAccount'));
+router.delete('/removeAvatar', verifyJwtToken, resolveDependency('userController', 'removeAvatar'));
+router.get('/', verifyJwtToken, resolveDependency('userController', 'getProfile'));
+router.get('/all', verifyJwtToken, resolveDependency('userController', 'getAllUsers'));
+router.delete('/:username?', verifyJwtToken, resolveDependency('userController', 'deleteUser'));
+router.post('/deleteUserAccount', verifyJwtToken, resolveDependency('userController', 'deleteUserAccount'));
+router.get('/user/permissions', verifyJwtToken, resolveDependency('userController', 'getUserPermissions'));
 
 export default router;

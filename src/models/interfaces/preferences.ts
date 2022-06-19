@@ -1,4 +1,4 @@
-export default interface IPreferences {
+export default interface Preferences {
   enableDarkTheme: boolean;
   locale: string;
 }

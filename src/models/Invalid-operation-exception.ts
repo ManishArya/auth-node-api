@@ -21,6 +21,7 @@ export class InvalidOperationException extends LocalizedException {
 
 export class NotFoundException extends LocalizedException {
   public readonly statusCode = StatusCodes.NOT_FOUND;
+
   constructor(message: string, localizedMessageKey: string, params?: any) {
     super(message, localizedMessageKey, params);
     this.name = 'NotFoundException';
@@ -29,6 +30,7 @@ export class NotFoundException extends LocalizedException {
 
 export class SecurityException extends Error {
   public readonly statusCode = StatusCodes.UNAUTHORIZED;
+
   constructor(message: string) {
     super(message);
     this.name = 'SecurityException';

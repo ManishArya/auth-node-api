@@ -1,23 +1,23 @@
 import config from 'config';
 
 export default class Config {
-  public get Service(): string {
+  public get service(): string {
     return config.get('mail.service') as string;
   }
 
-  public get MailHost(): string {
+  public get mailHost(): string {
     return config.get('mail.host') as string;
   }
 
-  public get IsMailSecure(): boolean {
+  public get isMailSecure(): boolean {
     return config.get('mail.secure');
   }
 
-  public get MailPassword() {
+  public get mailPassword() {
     return process.env.mail_server_password;
   }
 
-  public get MailServerAddress() {
+  public get mailServerAddress() {
     return process.env.mail_server_address;
   }
 }

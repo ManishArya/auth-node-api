@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
-import IPrefrencesSchema from './IPreferences-schema';
+import IPrefrencesSchema from './interfaces/preferences-schema';
+
 const preferencesSchema = new mongoose.Schema<IPrefrencesSchema>(
   {
     username: {

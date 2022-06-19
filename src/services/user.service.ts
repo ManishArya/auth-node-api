@@ -1,67 +1,114 @@
 import { StatusCodes } from 'http-status-codes';
+import { __ } from 'i18n';
 import QueryDAL from '../data-access/query.dal';
+import { LoginResponseCode } from '../enums/login-response-code.enum';
 import ApiResponse from '../models/api-response';
-import IUser from '../models/IUser';
+import AuthResponse from '../models/auth-response';
+import IUserSchema from '../models/interfaces/user-schema';
+import { NotFoundException } from '../models/Invalid-operation-exception';
+import UserInfo from '../models/user-info';
 import UserProfile from '../models/user-profile';
 import JwtHelper from '../utils/jwt-helper';
 import MailService from './mail.service';
 
 export default class UserService {
   private readonly currentUsername: string;
-  private readonly _userDAL: QueryDAL<IUser>;
+  private readonly _userDAL: QueryDAL<IUserSchema>;
   private readonly _mailService: MailService;
 
-  constructor(userDAL: QueryDAL<IUser>, mailService: MailService, username: string = '') {
+  constructor(userDAL: QueryDAL<IUserSchema>, mailService: MailService, username: string = '') {
     this._userDAL = userDAL;
     this._mailService = mailService;
     this.currentUsername = username;
   }
 
-  public async SaveUser(userData: any) {
-    userData.roles = [];
-    userData.roles.push({ name: 'user', _id: '62a0a21fb12ff26ed28e6874' });
-    const user = await this._userDAL.SaveRecord(userData);
-    const token = JwtHelper.generateToken(user.username, ['user']);
+  public async validateUser(
+    filter: any,
+    password: string,
+    errorMessage = 'Credential is wrong !!!'
+  ): Promise<AuthResponse> {
+    const user = await this._userDAL.getFilterRecord(filter);
+
+    if (!user) {
+      errorMessage = __('userNotFound');
+      return new AuthResponse(errorMessage, StatusCodes.NOT_FOUND, LoginResponseCode.NoUser);
+    }
+
+    if (user.isUserLocked) {
+      return new AuthResponse(__('userLocked'), StatusCodes.BAD_REQUEST, LoginResponseCode.locked);
+    }
+
+    const isPasswordValid = await user.isPasswordValid(password);
+
+    await user.updateUserLockedInformation(isPasswordValid);
+
+    if (isPasswordValid) {
+      return new AuthResponse(user, StatusCodes.OK, LoginResponseCode.successful);
+    }
+
+    return new AuthResponse(errorMessage, StatusCodes.BAD_REQUEST, LoginResponseCode.unsuccessful);
+  }
+
+  public async saveUser(userData: Partial<IUserSchema>) {
+    const user = await this._userDAL.saveRecord(userData);
+    const token = JwtHelper.generateToken(user._id, user.username, []);
     this._mailService.subject = `Your, ${user.name}, account has created successfully `;
     this._mailService.to = user.email;
     await this._mailService.send();
     return new ApiResponse({ token });
   }
 
-  public async EditProfile(userData: any) {
+  public async editProfile(userData: Partial<IUserSchema>) {
     return await this.UpdateUser(userData);
   }
 
-  public async UpdateAvatar(fileBytes?: Buffer) {
+  public async updateAvatar(fileBytes?: Buffer) {
     return await this.UpdateUser({ avatar: fileBytes });
   }
 
-  public async UpdateEmailAddress(email: string) {
+  public async updateEmailAddress(email: string) {
     return await this.UpdateUser({ email });
   }
 
-  public async GetProfile() {
-    const username = this.currentUsername;
-    const user = await this._userDAL.GetFilterRecordWithChild({ username }, 'roles');
-    return new ApiResponse(user?.toObject());
+  public async getProfile() {
+    const user = await this._userDAL.getFilterLeanRecord({ username: this.currentUsername });
+
+    if (!user) {
+      throw new NotFoundException('', '');
+    }
+
+    return new ApiResponse(new UserProfile(user));
   }
 
-  public async GetUsers() {
-    let users = await this._userDAL.GetRecords();
+  public async getUserPermissions(username?: string) {
+    const user = await this._userDAL.getFilterRecordWithAllRefs(
+      { username: this.currentUsername || username },
+      { path: 'roles', populate: { path: 'perms' } }
+    );
+
+    if (!user) {
+      throw new NotFoundException('', '');
+    }
+
+    return new UserInfo(user);
+  }
+
+  public async getAllUsers() {
+    let users = await this._userDAL.getRecords();
     users = users.map((u: any) => u.toObject());
     return new ApiResponse(users);
   }
 
-  public async DeleteUser(username: string) {
-    await this._userDAL.DeleteRecord({ username });
+  public async deleteUser(username: string) {
+    await this._userDAL.findAndDeleteRecord({ username });
     return new ApiResponse('User Deleted Successfully', StatusCodes.NO_CONTENT);
   }
 
-  private async UpdateUser(data: any) {
+  private async UpdateUser(data: Partial<IUserSchema>) {
     const username = this.currentUsername;
     data.lastUpdatedBy = username?.toLowerCase();
 
-    const user = await this._userDAL.FindAndUpdateRecord({ username }, data);
+    const user = await this._userDAL.findAndUpdateLeanRecord({ username }, data);
 
     if (user) {
       return new ApiResponse(new UserProfile(user));

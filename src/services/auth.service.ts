@@ -2,83 +2,69 @@ import bcrypt from 'bcrypt';
 import { StatusCodes } from 'http-status-codes';
 import { __ } from 'i18n';
 import QueryDAL from '../data-access/query.dal';
-import { LoginResponseCode } from '../enums/login-response-code.enum';
 import ApiResponse from '../models/api-response';
 import AuthResponse from '../models/auth-response';
+import IPasswordHistorySchema from '../models/interfaces/password-history-schema';
+import IUserSchema from '../models/interfaces/user-schema';
 import { InvalidOperationException } from '../models/Invalid-operation-exception';
-import IPasswordHistorySchema from '../models/IPasswordHistorySchema';
-import IUser from '../models/IUser';
-import UserInfo from '../models/user-info';
 import JwtHelper from '../utils/jwt-helper';
 import MailService from './mail.service';
+import UserService from './user.service';
 
 export default class AuthService {
-  private readonly _userDAL: QueryDAL<IUser>;
+  private readonly _userService: UserService;
+  private readonly _userDAL: QueryDAL<IUserSchema>;
   private readonly _mailService: MailService;
   private readonly _passwordHistoryDAL: QueryDAL<IPasswordHistorySchema>;
 
   constructor(
-    userDAL: QueryDAL<IUser>,
+    userDAL: QueryDAL<IUserSchema>,
     passwordHistoryDAL: QueryDAL<IPasswordHistorySchema>,
-    mailService: MailService
+    mailService: MailService,
+    userService: UserService
   ) {
     this._userDAL = userDAL;
     this._passwordHistoryDAL = passwordHistoryDAL;
     this._mailService = mailService;
+    this._userService = userService;
   }
 
-  public async ValidateUser(
+  public async validateUser(
     filter: any,
     password: string,
-    errorMessage = 'Credential is wrong !!!',
-    childPath = ''
+    errorMessage = 'Credential is wrong !!!'
   ): Promise<AuthResponse> {
-    const user = childPath
-      ? await this._userDAL.GetFilterRecordWithChild(filter, childPath)
-      : await this._userDAL.GetFilteredRecord(filter);
-    if (!user) {
-      errorMessage = __('userNotFound');
-      return new AuthResponse(errorMessage, StatusCodes.NOT_FOUND, LoginResponseCode.NoUser);
-    }
-
-    if (user.isUserLocked) {
-      return new AuthResponse(__('userLocked'), StatusCodes.BAD_REQUEST, LoginResponseCode.locked);
-    }
-
-    const isPasswordValid = await user.isPasswordValid(password);
-
-    await user.updateUserLockedInformation(isPasswordValid);
-
-    if (isPasswordValid) {
-      return new AuthResponse(user, StatusCodes.OK, LoginResponseCode.successful);
-    }
-
-    return new AuthResponse(errorMessage, StatusCodes.BAD_REQUEST, LoginResponseCode.unsuccessful);
+    return await this._userService.validateUser(filter, password, errorMessage);
   }
 
-  public async GenerateToken(user: UserInfo) {
-    const token = JwtHelper.generateToken(user.username, user.roles);
+  public async generateToken(username: string) {
+    const userInfo = await this._userService.getUserPermissions(username);
+    const token = JwtHelper.generateToken(userInfo._id, userInfo.username, userInfo.perms);
     return new ApiResponse({ token });
   }
 
-  public async SendPasswordResetLink(usernameOrEmail: string) {
-    const user = await this._userDAL.GetLeanSingleRecord({
+  public async sendPasswordResetLink(usernameOrEmail: string) {
+    const user = await this._userDAL.getFilterLeanRecord({
       $or: [{ username: usernameOrEmail }, { email: usernameOrEmail }]
     });
+
     if (user) {
       await this.sendEmail('Reset Password Link', user.email);
       return new ApiResponse(__('forgotPasswordInstruction'), StatusCodes.OK);
     }
+
     return new ApiResponse(__('userExistFailure'), StatusCodes.BAD_REQUEST);
   }
 
-  public async ChangePassword(user: IUser, password: string) {
+  public async changePassword(user: IUserSchema, password: string) {
     const isValid = await this.validateNewPassword(user, password);
+
     if (isValid) {
       await this.updatePassword(user, password);
       await this.sendEmail(`Your, ${user.name}, Password has changed successfully`, user.email);
       return new ApiResponse('Password Changed Successfully', StatusCodes.OK);
     }
+
     throw new InvalidOperationException(
       'This password may not be  one of recent changed password',
       'recentPasswordChange'
@@ -91,21 +77,22 @@ export default class AuthService {
     await this._mailService.send();
   }
 
-  private async updatePassword(user: IUser, password: string) {
-    await this._passwordHistoryDAL.SaveRecord({
+  private async updatePassword(user: IUserSchema, password: string) {
+    await this._passwordHistoryDAL.saveRecord({
       password: user.password,
       username: user.username
     } as IPasswordHistorySchema);
+
     user.password = password;
+
     await (user as any).save();
   }
 
-  private async validateNewPassword(user: IUser, password: string) {
+  private async validateNewPassword(user: IUserSchema, password: string) {
     const hasMatch = await user.isOldPasswordAndCurrentPasswordMatch(password);
 
     if (!hasMatch) {
       const isExists = await this.checkPasswordHistory(user.username, password);
-
       return !isExists;
     }
 
@@ -113,20 +100,23 @@ export default class AuthService {
   }
 
   private async checkPasswordHistory(username: string, password: string): Promise<boolean> {
-    const passwordHistory: any[] = await this._passwordHistoryDAL.GetNRecords(5, { username });
+    const passwordHistory: any[] = await this._passwordHistoryDAL.getNFilterLeanRecords(5, { username });
     const passwords = passwordHistory.map((p) => p.password);
+
     for (let i = 0; i < passwords.length; i++) {
       const isPasswordValid = await this.isPasswordValid(password, passwords[i]);
+
       if (isPasswordValid) {
         return Promise.resolve(true);
       }
     }
+
     return Promise.resolve(false);
   }
 
-  private async isPasswordValid(password: string, hashPassword: string): Promise<boolean> {
+  private isPasswordValid(password: string, hashPassword: string): Promise<boolean> {
     if (password) {
-      return await bcrypt.compare(password, hashPassword);
+      return bcrypt.compare(password, hashPassword);
     }
     return Promise.resolve(false);
   }

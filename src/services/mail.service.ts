@@ -16,17 +16,17 @@ export default class MailService {
   public async send() {
     try {
       const transport = nodemailer.createTransport({
-        service: this._config.Service,
-        host: this._config.MailHost,
-        secure: this._config.IsMailSecure,
+        service: this._config.service,
+        host: this._config.mailHost,
+        secure: this._config.isMailSecure,
         auth: {
-          user: this._config.MailServerAddress,
-          pass: this._config.MailPassword
+          user: this._config.mailServerAddress,
+          pass: this._config.mailPassword
         }
       });
 
       return await transport.sendMail({
-        from: this._config.MailServerAddress,
+        from: this._config.mailServerAddress,
         to: this.to,
         subject: this.subject,
         text: this.text

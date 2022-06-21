@@ -39,7 +39,7 @@ export default class AuthService {
 
   public async generateToken(username: string) {
     const userInfo = await this._userService.getUserPermissions(username);
-    const token = JwtHelper.generateToken(userInfo._id, userInfo.username, userInfo.perms);
+    const token = JwtHelper.generateToken(userInfo);
     return new ApiResponse({ token });
   }
 

@@ -51,7 +51,8 @@ export default class UserService {
 
   public async saveUser(userData: Partial<IUserSchema>) {
     const user = await this._userDAL.saveRecord(userData);
-    const token = JwtHelper.generateToken(user._id, user.username, []);
+    const userInfo = await this.getUserPermissions(user.username);
+    const token = JwtHelper.generateToken(userInfo);
     this._mailService.subject = `Your, ${user.name}, account has created successfully `;
     this._mailService.to = user.email;
     await this._mailService.send();

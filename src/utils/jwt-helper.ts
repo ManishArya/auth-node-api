@@ -1,14 +1,16 @@
 import jwt from 'jsonwebtoken';
+import UserInfo from '../models/user-info';
 
 export default class JwtHelper {
   private static readonly _secretKey = process.env.jwt_secret_key as string;
 
-  public static generateToken(userId: string, username: string, perms: readonly number[]): string {
-    return jwt.sign({ username, perms }, this._secretKey, {
+  public static generateToken(userInfo: UserInfo): string {
+    const { username, _id, isAdmin, perms } = userInfo;
+    return jwt.sign({ username, perms, isAdmin }, this._secretKey, {
       expiresIn: '1d',
       audience: process.env.audience,
       issuer: process.env.issuer,
-      subject: username
+      subject: _id?.toString()
     });
   }
 

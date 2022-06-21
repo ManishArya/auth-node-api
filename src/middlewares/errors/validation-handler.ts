@@ -4,7 +4,7 @@ import ApiResponse from '../../models/api-response';
 
 export default (error: Error, req: Request, res: Response, next: NextFunction) => {
   if (error?.name === 'ValidationError') {
-    let validationsErrors: { [key: string]: string } = {};
+    let validationsErrors: Record<string, string> = {};
     const errors = (error as any).errors;
     const keys = Object.keys(errors);
     keys.forEach((key) => {

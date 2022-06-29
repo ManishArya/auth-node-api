@@ -41,5 +41,5 @@ jobs:
       - name: heroku remote
         run: heroku git:remote -a auth-server-api-svc
 
-      - name: heroku push
-        run: git push -f heroku master
+      # - name: heroku push
+      #   run: git push -f heroku master

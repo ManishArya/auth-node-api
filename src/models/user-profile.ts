@@ -14,6 +14,13 @@ export default class UserProfile {
     this.mobile = data.mobile;
     this.username = data.username;
     this._id = data._id;
-    this.avatar = data.avatar?.toString();
+    this.avatar = this.convertBufferToBase64String(data.avatar);
+  }
+
+  private convertBufferToBase64String(avatar: Buffer): string {
+    if (avatar) {
+      return `data:image/jpg;base64,${avatar.toString('base64')}`;
+    }
+    return '';
   }
 }

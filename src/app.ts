@@ -12,7 +12,11 @@ import logger from './utils/logger';
 
 i18n.configure({
   locales: ['en', 'hi'],
-  directory: path.join(__dirname, '/locales')
+  directory: path.join(__dirname, '/locales'),
+  api: {
+    __: 'translate',
+    __mf: 'translateWithMessageFormatter'
+  }
 });
 
 const container = registerDependency();
@@ -20,7 +24,7 @@ const container = registerDependency();
 const app = express();
 
 app.use((req, res, next) => {
-  (req as any).scope = container.createScope();
+  req.scope = container.createScope();
   const listener = (err: any) => {
     if (!res.headersSent) next(err);
   };
@@ -28,10 +32,11 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use((res, req, next) => {
-  i18n.init(res, req, next);
-  i18n.setLocale(res.getLocale());
+app.use((req, res, next) => {
+  i18n.init(req, res, next);
+  i18n.setLocale(req.getLocale());
 });
+
 app.use(express.json());
 app.set('view engine', 'ejs');
 app.use(cors());

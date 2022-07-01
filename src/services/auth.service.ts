@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import { StatusCodes } from 'http-status-codes';
-import { __ } from 'i18n';
+import { __ as translate } from 'i18n';
 import QueryDAL from '../data-access/query.dal';
 import ApiResponse from '../models/api-response';
 import AuthResponse from '../models/auth-response';
@@ -50,10 +50,10 @@ export default class AuthService {
 
     if (user) {
       await this.sendEmail('Reset Password Link', user.email);
-      return new ApiResponse(__('forgotPasswordInstruction'), StatusCodes.OK);
+      return new ApiResponse(translate('forgotPasswordInstruction'), StatusCodes.OK);
     }
 
-    return new ApiResponse(__('userExistFailure'), StatusCodes.BAD_REQUEST);
+    return new ApiResponse(translate('userExistFailure'), StatusCodes.BAD_REQUEST);
   }
 
   public async changePassword(user: IUserSchema, password: string) {

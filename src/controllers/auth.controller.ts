@@ -49,7 +49,7 @@ export default class AuthController extends BaseController {
 
     let result: ApiResponse;
     const filter = { username: req.currentUsername };
-    result = await this._authService.validateUser(filter, oldPassword, req.__('oldPasswordWrong'));
+    result = await this._authService.validateUser(filter, oldPassword, req.translate('oldPasswordWrong'));
 
     if (result.statusCode === StatusCodes.OK) {
       result = await this._authService.changePassword(result.content, password);

@@ -38,7 +38,7 @@ export default class UserController extends BaseController {
 
     let result: ApiResponse;
     const filter = { username: req.currentUsername };
-    result = await this._userService.validateUser(filter, password, req.__('passwordWrong'));
+    result = await this._userService.validateUser(filter, password, req.translate('passwordWrong'));
 
     if (!result.isSuccess) {
       return this.sendResponse(res, new ApiResponse({ password: result.content }, result.statusCode));
@@ -111,7 +111,7 @@ export default class UserController extends BaseController {
 
     let result: ApiResponse;
     const filter = { username };
-    result = await this._userService.validateUser(filter, password, req.__('passwordWrong'));
+    result = await this._userService.validateUser(filter, password, req.translate('passwordWrong'));
 
     if (result.statusCode === StatusCodes.OK) {
       result = await this._userService.deleteUser(username);

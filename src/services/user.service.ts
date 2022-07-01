@@ -1,5 +1,5 @@
 import { StatusCodes } from 'http-status-codes';
-import { __ } from 'i18n';
+import { __ as translate } from 'i18n';
 import QueryDAL from '../data-access/query.dal';
 import { LoginResponseCode } from '../enums/login-response-code.enum';
 import ApiResponse from '../models/api-response';
@@ -30,12 +30,12 @@ export default class UserService {
     const user = await this._userDAL.getFilterRecord(filter);
 
     if (!user) {
-      errorMessage = __('userNotFound');
+      errorMessage = translate('userNotFound');
       return new AuthResponse(errorMessage, StatusCodes.NOT_FOUND, LoginResponseCode.NoUser);
     }
 
     if (user.isUserLocked) {
-      return new AuthResponse(__('userLocked'), StatusCodes.BAD_REQUEST, LoginResponseCode.locked);
+      return new AuthResponse(translate('userLocked'), StatusCodes.BAD_REQUEST, LoginResponseCode.locked);
     }
 
     const isPasswordValid = await user.isPasswordValid(password);

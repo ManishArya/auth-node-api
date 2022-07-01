@@ -4,6 +4,7 @@ import PreferencesController from '../controllers/preferences.controller';
 import UserController from '../controllers/user.controller';
 import QueryDAL from '../data-access/query.dal';
 import PreferencesManager from '../manager/preferences-manager';
+import Email from '../models/email';
 import PasswordHistory from '../models/password-history';
 import Preferences from '../models/preferences';
 import User from '../models/user';
@@ -11,7 +12,6 @@ import AuthService from '../services/auth.service';
 import MailService from '../services/mail.service';
 import PreferencesService from '../services/preferences.service';
 import UserService from '../services/user.service';
-import Config from '../utils/config';
 
 export default () => {
   const container = createContainer({
@@ -36,7 +36,9 @@ export default () => {
       .scoped()
       .inject(() => ({ db: Preferences })),
     mailService: asClass(MailService).scoped(),
-    config: asClass(Config).scoped()
+    mailDAL: asClass(QueryDAL)
+      .scoped()
+      .inject(() => ({ db: Email }))
   });
 
   return container;

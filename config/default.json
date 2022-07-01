@@ -1,9 +1,4 @@
 {
-  "mail": {
-    "service": "gmail",
-    "host": "smtp.gmail.com",
-    "secure": false
-  },
   "images": {
     "uploadPath": "uploads/images",
     "size": "1000000"

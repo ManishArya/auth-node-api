@@ -1,5 +1,5 @@
-import nodemailer from 'nodemailer';
-import Config from '../utils/config';
+import QueryDAL from '../data-access/query.dal';
+import IEmailSechema from '../models/interfaces/email-schema';
 import logger from '../utils/logger';
 
 export default class MailService {
@@ -7,29 +7,19 @@ export default class MailService {
   public subject: string = '';
   public text?: string;
 
-  private readonly _config: Config;
+  private readonly _emailDAL: QueryDAL<IEmailSechema>;
 
-  constructor(config: Config) {
-    this._config = config;
+  constructor(mailDAL: QueryDAL<IEmailSechema>) {
+    this._emailDAL = mailDAL;
   }
 
   public async send() {
     try {
-      const transport = nodemailer.createTransport({
-        service: this._config.service,
-        host: this._config.mailHost,
-        secure: this._config.isMailSecure,
-        auth: {
-          user: this._config.mailServerAddress,
-          pass: this._config.mailPassword
-        }
-      });
-
-      return await transport.sendMail({
-        from: this._config.mailServerAddress,
+      await this._emailDAL.saveRecord({
         to: this.to,
         subject: this.subject,
-        text: this.text
+        body: this.text,
+        from: process.env.mail_server_address
       });
     } catch (error) {
       logger.error(error);

@@ -15,7 +15,7 @@ i18n.configure({
   directory: path.join(__dirname, '/locales'),
   api: {
     __: 'translate',
-    __mf: 'translateWithMessageFormatter'
+    __mf: 'translateFormatter'
   }
 });
 

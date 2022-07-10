@@ -28,6 +28,10 @@ export default class QueryDAL<T extends BaseSchema> {
     return await this._db.find(filterQuery);
   }
 
+  public async getFilterLeanRecords(filterQuery: FilterQuery<T>) {
+    return await this._db.find(filterQuery).lean();
+  }
+
   public async getRecords() {
     return await this._db.find();
   }
@@ -59,6 +63,10 @@ export default class QueryDAL<T extends BaseSchema> {
       returnOriginal: false,
       runValidators: true
     });
+  }
+
+  public async deleteRecord(filterQuery: FilterQuery<T>, isLean: boolean = true) {
+    return await this._db.deleteOne(filterQuery, { lean: isLean });
   }
 
   public async createNewRecord(document: T) {

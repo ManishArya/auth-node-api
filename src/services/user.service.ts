@@ -1,7 +1,7 @@
 import { StatusCodes } from 'http-status-codes';
 import { __ as translate } from 'i18n';
 import QueryDAL from '../data-access/query.dal';
-import { LoginResponseCode } from '../enums/login-response-code.enum';
+import { LoginCode } from '../enums/login-response-code.enum';
 import ApiResponse from '../models/api-response';
 import AuthResponse from '../models/auth-response';
 import IUserSchema from '../models/interfaces/user-schema';
@@ -31,11 +31,11 @@ export default class UserService {
 
     if (!user) {
       errorMessage = translate('userNotFound');
-      return new AuthResponse(errorMessage, StatusCodes.NOT_FOUND, LoginResponseCode.NoUser);
+      return new AuthResponse(errorMessage, StatusCodes.NOT_FOUND, LoginCode.NoUser);
     }
 
     if (user.isUserLocked) {
-      return new AuthResponse(translate('userLocked'), StatusCodes.BAD_REQUEST, LoginResponseCode.locked);
+      return new AuthResponse(translate('userLocked'), StatusCodes.BAD_REQUEST, LoginCode.locked);
     }
 
     const isPasswordValid = await user.isPasswordValid(password);
@@ -43,10 +43,10 @@ export default class UserService {
     await user.updateUserLockedInformation(isPasswordValid);
 
     if (isPasswordValid) {
-      return new AuthResponse(user, StatusCodes.OK, LoginResponseCode.successful);
+      return new AuthResponse(user, StatusCodes.OK, LoginCode.successful);
     }
 
-    return new AuthResponse(errorMessage, StatusCodes.BAD_REQUEST, LoginResponseCode.unsuccessful);
+    return new AuthResponse(errorMessage, StatusCodes.BAD_REQUEST, LoginCode.unsuccessful);
   }
 
   public async saveUser(userData: Partial<IUserSchema>) {

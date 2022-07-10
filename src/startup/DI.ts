@@ -1,13 +1,16 @@
 import { asClass, createContainer, InjectionMode } from 'awilix';
+import AddressController from '../controllers/address.controller';
 import AuthController from '../controllers/auth.controller';
 import PreferencesController from '../controllers/preferences.controller';
 import UserController from '../controllers/user.controller';
 import QueryDAL from '../data-access/query.dal';
 import PreferencesManager from '../manager/preferences-manager';
+import address from '../models/address';
 import Email from '../models/email';
 import PasswordHistory from '../models/password-history';
 import Preferences from '../models/preferences';
 import User from '../models/user';
+import AddressService from '../services/address.service';
 import AuthService from '../services/auth.service';
 import MailService from '../services/mail.service';
 import PreferencesService from '../services/preferences.service';
@@ -38,7 +41,12 @@ export default () => {
     mailService: asClass(MailService).scoped(),
     mailDAL: asClass(QueryDAL)
       .scoped()
-      .inject(() => ({ db: Email }))
+      .inject(() => ({ db: Email })),
+    addressController: asClass(AddressController).scoped(),
+    addressService: asClass(AddressService).scoped(),
+    addressDAL: asClass(QueryDAL)
+      .scoped()
+      .inject(() => ({ db: address }))
   });
 
   return container;

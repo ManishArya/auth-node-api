@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import config from 'config';
 import moment from 'moment';
 import mongoose from 'mongoose';
+import { isAlphaAndSpace, isEmail, isMobileNumber } from '../utils/mongoose-validator';
 import IUserSchema from './interfaces/user-schema';
 import Role from './role';
 import UserProfile from './user-profile';
@@ -14,12 +15,7 @@ const userSchema = new mongoose.Schema<IUserSchema>(
       maxLength: [50, 'name cannot exceed 50 characters'],
       trim: true,
       validate: {
-        validator: function (v: string) {
-          if (v === 'null' || v === 'undefined') {
-            return false;
-          }
-          return /^[A-Za-z\s]*$/.test(v);
-        },
+        validator: isAlphaAndSpace,
         message: 'alphabets and spaces are allowed only !!!'
       }
     },
@@ -30,21 +26,14 @@ const userSchema = new mongoose.Schema<IUserSchema>(
       lowercase: true,
       trim: true,
       validate: {
-        validator: function (v: string) {
-          return /^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$/.test(v);
-        },
+        validator: isEmail,
         message: 'Enter valid email'
       }
     },
     mobile: {
       type: String,
       validate: {
-        validator: function (v: string) {
-          if (v === 'undefined' || v === 'null' || v === null || v.trim() === '') {
-            return true;
-          }
-          return /^(0|91)?[7-9]\d{9}$/.test(v);
-        },
+        validator: isMobileNumber,
         message: 'Enter valid mobile number'
       }
     },

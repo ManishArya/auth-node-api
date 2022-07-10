@@ -1,4 +1,4 @@
-export enum LoginResponseCode {
+export enum LoginCode {
   unsuccessful = 0,
   successful = 1,
   locked = 2,

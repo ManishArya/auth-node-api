@@ -15,52 +15,11 @@ export default class AddressService {
     return await this._addressDAL.getFilterLeanRecords({ username: this._username });
   }
 
-  public async addNewAddress(newAddress: IAddressSchema) {
-    const defaultValue = newAddress.default;
-    const defultOldAddress = await this._addressDAL.getFilterRecord({ username: this._username, default: true });
-
-    if (defultOldAddress && defaultValue) {
-      defultOldAddress.default = false;
-      newAddress.default = true;
+  public async saveAddress(updatingAddress: IAddressSchema): Promise<any> {
+    if (!updatingAddress?._id) {
+      return await this.addAddress(updatingAddress);
     } else {
-      newAddress.default = defaultValue || !defultOldAddress;
-    }
-
-    newAddress.username = this._username;
-    await this._addressDAL.saveRecord(newAddress);
-    await defultOldAddress?.save();
-  }
-
-  public async updateAddress(updatingAddress: IAddressSchema) {
-    const address = await this._addressDAL.getFilterLeanRecord({ _id: updatingAddress._id });
-
-    if (!address) {
-      throw new NotFoundException('', '');
-    }
-
-    const defaultValue = updatingAddress.default;
-    let filterQuery = null;
-    if (address.default && !defaultValue) {
-      filterQuery = {
-        username: this._username,
-        _id: { $ne: address._id }
-      };
-    } else if (!address.default && defaultValue) {
-      filterQuery = {
-        username: this._username,
-        default: true
-      };
-    }
-
-    updatingAddress.username = this._username;
-    await this._addressDAL.updateRecord({ _id: address._id }, updatingAddress);
-
-    if (filterQuery) {
-      const defaultAddress = await this._addressDAL.getFilterRecord(filterQuery);
-      if (defaultAddress) {
-        defaultAddress.default = !defaultValue;
-        await defaultAddress.save();
-      }
+      return await this.updateAddress(updatingAddress);
     }
   }
 
@@ -77,6 +36,60 @@ export default class AddressService {
       const defaultAddress = await this._addressDAL.getFilterRecord({ username: this._username });
       if (defaultAddress) {
         defaultAddress.default = true;
+        await defaultAddress.save();
+      }
+    }
+  }
+
+  private async addAddress(newAddress: IAddressSchema) {
+    const defaultValue = newAddress.default;
+    const defultOldAddress = await this._addressDAL.getFilterRecord({ username: this._username, default: true });
+
+    if (defultOldAddress && defaultValue) {
+      defultOldAddress.default = !defaultValue;
+      newAddress.default = defaultValue;
+    } else {
+      newAddress.default = defaultValue || !defultOldAddress;
+    }
+
+    newAddress.username = this._username;
+    await this._addressDAL.saveRecord(newAddress);
+    await defultOldAddress?.save();
+  }
+
+  private async updateAddress(updatingAddress: IAddressSchema) {
+    const address = await this._addressDAL.getFilterLeanRecord({ _id: updatingAddress._id });
+
+    if (!address) {
+      throw new NotFoundException('', '');
+    }
+
+    let filterQuery = null;
+    const defaultValue = updatingAddress.default;
+    const count = await this._addressDAL.getRecordCount();
+    if (count > 1) {
+      if (address.default && !defaultValue) {
+        filterQuery = {
+          username: this._username,
+          _id: { $ne: address._id }
+        };
+      } else if (!address.default && defaultValue) {
+        filterQuery = {
+          username: this._username,
+          default: true
+        };
+      }
+    } else {
+      updatingAddress.default = true;
+    }
+
+    updatingAddress.username = this._username;
+    await this._addressDAL.updateRecord({ _id: address._id }, updatingAddress);
+
+    if (filterQuery) {
+      const defaultAddress = await this._addressDAL.getFilterRecord(filterQuery);
+      if (defaultAddress) {
+        defaultAddress.default = !defaultValue;
         await defaultAddress.save();
       }
     }

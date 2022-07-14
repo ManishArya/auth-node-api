@@ -21,10 +21,10 @@ const addressSchema = new mongoose.Schema<IAddressSchema>(
     },
     mobileNumber: {
       type: String,
-      required: [true, 'mobileNumber is required'],
+      required: [true, 'mobile number is required'],
       validate: {
         validator: isMobileNumber,
-        message: 'Enter valid mobile number'
+        message: 'enter valid mobile number'
       }
     },
     city: {
@@ -64,6 +64,10 @@ const addressSchema = new mongoose.Schema<IAddressSchema>(
         values: Object.values(AddressType),
         message: 'enter provie valid address Type'
       }
+    },
+    country: {
+      type: String,
+      default: 'India'
     }
   },
   {

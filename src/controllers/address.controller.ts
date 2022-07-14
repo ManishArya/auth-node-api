@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import ApiResponse from '../models/api-response';
 import IAddressSchema from '../models/interfaces/address-schema';
 import AddressService from '../services/address.service';
+import logger from '../utils/logger';
 import BaseController from './base.controller';
 
 export default class AddressController extends BaseController {
@@ -13,32 +14,30 @@ export default class AddressController extends BaseController {
   }
 
   public getAllAddress = async (req: Request, res: Response) => {
+    logger.info(`Address.getAllAddress beginning ${req.path}`);
+
     const addresses = await this._addressService.getAllAddress();
 
-    return this.sendResponse(res, new ApiResponse(addresses));
+    logger.info(`Address.getAllAddress returning`);
+    return this.sendResponse(res, new ApiResponse(addresses.sort((x, y) => (x === y ? 0 : x ? -1 : 1))));
   };
 
-  public addNewAddress = async (req: Request, res: Response) => {
+  public saveAddress = async (req: Request, res: Response) => {
+    logger.info(`Address.saveAddress beginning ${req.path}`);
     const address = req.body as IAddressSchema;
 
-    await this._addressService.addNewAddress(address);
+    await this._addressService.saveAddress(address);
 
-    return this.sendResponse(res, new ApiResponse('Saved successfully'));
-  };
-
-  public updateAddress = async (req: Request, res: Response) => {
-    const address = req.body as IAddressSchema;
-
-    await this._addressService.updateAddress(address);
-
+    logger.info(`Address.saveAddress returning`);
     return this.sendResponse(res, new ApiResponse('Update successfully'));
   };
 
   public deleteAddress = async (req: Request, res: Response) => {
+    logger.info(`Address.deleteAddress beginning ${req.path}`);
     const id = req.query.id as string;
 
     await this._addressService.deleteAddress(id);
-
+    logger.info(`Address.deleteAddress returning`);
     return this.sendResponse(res, new ApiResponse('Deleted successfully'));
   };
 }

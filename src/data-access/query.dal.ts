@@ -72,4 +72,8 @@ export default class QueryDAL<T extends BaseSchema> {
   public async createNewRecord(document: T) {
     return await this._db.create(document);
   }
+
+  public async getRecordCount() {
+    return await this._db.count();
+  }
 }

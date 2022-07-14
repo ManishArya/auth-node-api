@@ -8,9 +8,7 @@ controllerName = controllerName.charAt(0).toLowerCase() + controllerName.substr(
 
 router.get('/', verifyJwtToken, resolveDependency(controllerName, 'getAllAddress'));
 
-router.post('/', verifyJwtToken, resolveDependency(controllerName, 'addNewAddress'));
-
-router.put('/', verifyJwtToken, resolveDependency(controllerName, 'updateAddress'));
+router.put('/', verifyJwtToken, resolveDependency(controllerName, 'saveAddress'));
 
 router.delete('/', verifyJwtToken, resolveDependency(controllerName, 'deleteAddress'));
 

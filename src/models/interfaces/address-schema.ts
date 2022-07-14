@@ -10,6 +10,7 @@ export default interface IAddressSchema extends BaseSchema {
   pincode: string;
   area: string;
   street: string;
+  country: string;
   landmark?: string;
   default: boolean;
   addressType: AddressType;

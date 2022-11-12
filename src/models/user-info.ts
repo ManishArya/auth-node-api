@@ -1,10 +1,11 @@
+import { RolePermission } from '../enums/role-permission';
 import IUserSchema from './interfaces/user-schema';
 
 export default class UserInfo {
   public readonly _id: string = '';
   public readonly username: string = '';
   public readonly isAdmin: boolean = false;
-  public perms: readonly number[] = [];
+  public perms: readonly string[] = [];
 
   constructor(data: IUserSchema) {
     if (data) {
@@ -13,7 +14,7 @@ export default class UserInfo {
       this.isAdmin = data.isAdmin;
       const roles = data.roles;
       if (roles.length > 0) {
-        this.perms = [...new Set(roles.flatMap((r) => r.perms.map((r) => r.value)))];
+        this.perms = [...new Set(roles.flatMap((r) => r.perms.map((r) => RolePermission[r.value])))];
       }
     }
   }

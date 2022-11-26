@@ -32,6 +32,10 @@ export default class QueryDAL<T extends BaseSchema> {
     return await this._db.find(filterQuery).lean();
   }
 
+  public async getSortedFilterLeanRecords(filterQuery: FilterQuery<T>, sortParams: any) {
+    return await this._db.find(filterQuery).sort(sortParams).lean();
+  }
+
   public async getRecords() {
     return await this._db.find();
   }

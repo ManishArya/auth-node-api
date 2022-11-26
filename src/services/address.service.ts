@@ -12,7 +12,7 @@ export default class AddressService {
   }
 
   public async getAllAddress() {
-    return await this._addressDAL.getFilterLeanRecords({ username: this._username });
+    return await this._addressDAL.getSortedFilterLeanRecords({ username: this._username }, { createdAt: -1 });
   }
 
   public async saveAddress(updatingAddress: IAddressSchema): Promise<any> {

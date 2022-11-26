@@ -19,7 +19,7 @@ export default class AddressController extends BaseController {
     const addresses = await this._addressService.getAllAddress();
 
     logger.info(`Address.getAllAddress returning`);
-    return this.sendResponse(res, new ApiResponse(addresses.sort((x, y) => (x === y ? 0 : x ? -1 : 1))));
+    return this.sendResponse(res, new ApiResponse(addresses.sort((x, y) => (x.default ? -1 : 0))));
   };
 
   public saveAddress = async (req: Request, res: Response) => {

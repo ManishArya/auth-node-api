@@ -1,19 +1,19 @@
 import PreferencesManager from '../manager/preferences-manager';
 import ApiResponse from '../models/api-response';
-import IPreferences from '../models/interfaces/preferences';
+import GeneralPreferences from '../models/interfaces/general-preferences';
 
 export default class PreferencesService {
-  private readonly currentUsername: string = '';
   private readonly _preferencesManager: PreferencesManager;
 
-  constructor(username: string, preferencesManager: PreferencesManager) {
-    this.currentUsername = username;
+  constructor(preferencesManager: PreferencesManager) {
     this._preferencesManager = preferencesManager;
   }
 
   public async getPreferences() {
     return Promise.resolve(
-      new ApiResponse(await this._preferencesManager.getUserPreferencesBySection<IPreferences>('preferences'))
+      new ApiResponse(
+        await this._preferencesManager.getUserPreferencesBySection<GeneralPreferences>('general-preferences')
+      )
     );
   }
 

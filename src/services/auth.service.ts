@@ -100,7 +100,7 @@ export default class AuthService {
   }
 
   private async checkPasswordHistory(username: string, password: string): Promise<boolean> {
-    const passwordHistory: any[] = await this._passwordHistoryDAL.getNFilterLeanRecords(5, { username });
+    const passwordHistory: any[] = await this._passwordHistoryDAL.getFilterNLeanRecords(5, { username });
     const passwords = passwordHistory.map((p) => p.password);
 
     for (let i = 0; i < passwords.length; i++) {

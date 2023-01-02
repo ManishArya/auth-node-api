@@ -8,7 +8,7 @@ export interface IPreferenceManager {
 }
 
 export class SectionName {
-  public readonly _preferences = 'preferences';
+  public readonly _preferences = 'general-preferences';
 }
 
 export class SectionKey {

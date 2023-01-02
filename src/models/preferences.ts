@@ -11,8 +11,8 @@ const preferencesSchema = new mongoose.Schema<IPrefrencesSchema>(
       type: String,
       required: true
     },
-    value: {
-      type: String
+    sectionPreferences: {
+      type: Object
     },
     createdBy: { type: String, default: 'admin' },
     lastUpdatedBy: { type: String, default: 'admin' }

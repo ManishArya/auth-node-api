@@ -1,45 +1,49 @@
 import QueryDAL from '../data-access/query.dal';
-import Preferences from '../models/interfaces/preferences';
+import GeneralPreferences from '../models/interfaces/general-preferences';
 import IPrefrencesSchema from '../models/interfaces/preferences-schema';
 import { IPreferenceManager, SectionKey, SectionName, ValueOf } from './IPreferences-manager';
 
 export default class PreferencesManager implements IPreferenceManager {
-  private readonly _systemPreferences: Map<string, Map<string, string>> = new Map();
-  private readonly _userPreferences: Map<string, Map<string, string>> = new Map();
+  private readonly _systemPreferencesMap: Map<string, Record<string, any>> = new Map();
+  private readonly _userPreferencesMap: Map<string, Record<string, any>> = new Map();
   private readonly _username: string = '';
   private readonly _preferencesDAL: QueryDAL<IPrefrencesSchema>;
+
+  private get PreferencesMap() {
+    return this._username ? this._userPreferencesMap : this._systemPreferencesMap;
+  }
 
   public constructor(username: string, preferencesDAL: QueryDAL<IPrefrencesSchema>) {
     this._username = username;
     this._preferencesDAL = preferencesDAL;
   }
 
-  public async getUserPreferencesBySection<T>(section: ValueOf<SectionName>): Promise<T> {
+  public async getUserPreferencesBySection<TModel>(section: ValueOf<SectionName>): Promise<TModel> {
     switch (section) {
-      case 'preferences':
+      case 'general-preferences':
         return {
           enableDarkTheme: await this.getDarkTheme(),
           locale: await this.getUserLocale()
-        } as Preferences as unknown as T;
+        } as GeneralPreferences as unknown as TModel;
       default:
-        return {} as T;
+        return {} as TModel;
     }
   }
 
   public async getDarkTheme() {
-    return await this.getUserPreferences<boolean>('preferences', 'darkTheme', false);
+    return await this.getUserPreferences<boolean>('general-preferences', 'darkTheme', false);
   }
 
   public async setDarkTheme(value: boolean) {
-    await this.setUserPreferences<boolean>('preferences', 'darkTheme', value);
+    await this.setUserPreferences<boolean>('general-preferences', 'darkTheme', value);
   }
 
   public async getUserLocale() {
-    return await this.getUserPreferences<string>('preferences', 'locale', 'en');
+    return await this.getUserPreferences<string>('general-preferences', 'locale', 'en');
   }
 
   public async setUserLocale(locale: string) {
-    await this.setUserPreferences<string>('preferences', 'locale', locale);
+    await this.setUserPreferences<string>('general-preferences', 'locale', locale);
   }
 
   public async update() {
@@ -47,41 +51,36 @@ export default class PreferencesManager implements IPreferenceManager {
     await this.updateSystemPreferences();
   }
 
-  private async getUserPreferences<T>(
+  private async getUserPreferences<TValue>(
     section: ValueOf<SectionName>,
     key: ValueOf<SectionKey>,
-    defaultValue: T
-  ): Promise<T> {
-    return await this.getPreferences<T>(section, key, defaultValue, this._username);
+    defaultValue: TValue
+  ): Promise<TValue> {
+    return await this.getPreferences<TValue>(section, key, defaultValue, this._username);
   }
 
-  private async setUserPreferences<T>(section: ValueOf<SectionName>, key: ValueOf<SectionKey>, value: T) {
-    await this.setPreferences<T>(section, key, value, this._username);
+  private async setUserPreferences<TValue>(section: ValueOf<SectionName>, key: ValueOf<SectionKey>, value: TValue) {
+    await this.setPreferences<TValue>(section, key, value, this._username);
   }
 
   private async updateUserPreferences() {
-    if (this._userPreferences.size) {
-      await this.updatePreferences(this._userPreferences, false);
+    if (this._userPreferencesMap.size) {
+      await this.updatePreferences(this._userPreferencesMap, false);
     }
   }
 
   private async updateSystemPreferences() {
-    if (this._systemPreferences.size) {
-      await this.updatePreferences(this._systemPreferences, true);
+    if (this._systemPreferencesMap.size) {
+      await this.updatePreferences(this._systemPreferencesMap, true);
     }
   }
 
-  private async updatePreferences(preferences: Map<string, Map<string, string>>, systemPreference: boolean) {
-    const sections = Array.from(preferences.entries()).flat();
+  private async updatePreferences(preferencesMap: Map<string, Record<string, any>>, systemPreference: boolean) {
+    const sections = Array.from(preferencesMap.entries()).flat();
     const sectionName = sections[0] as string;
-    const keyValuePair = sections[1] as Map<string, string>;
+    const sectionPreferences = sections[1] as any;
 
-    if (keyValuePair) {
-      const entries = keyValuePair.entries();
-      const value = Array.from(entries)
-        .flatMap((x) => x.join('='))
-        .join('\r\n');
-
+    if (sectionPreferences) {
       const username = systemPreference ? '' : this._username;
 
       const filter = {
@@ -89,83 +88,63 @@ export default class PreferencesManager implements IPreferenceManager {
         username
       };
 
-      const isExists = await this._preferencesDAL.isRecordExists(filter);
-
       const preference = {
         sectionName,
         username,
-        value
+        sectionPreferences
       } as IPrefrencesSchema;
 
-      if (isExists) {
-        await this._preferencesDAL.updateRecord(filter, preference);
-      } else {
-        await this._preferencesDAL.createNewRecord(preference);
-      }
+      await this._preferencesDAL.updateRecord(filter, preference, true);
     }
   }
 
-  private async getLeanPreference(sectionName: string, username: string): Promise<IPrefrencesSchema> {
+  private async getLeanPreferences(sectionName: string, username: string): Promise<IPrefrencesSchema> {
     return await this._preferencesDAL.getFilterLeanRecord({ username, sectionName });
   }
 
-  private async getPreferences<T>(section: string, key: string, defaultValue: T, username: string): Promise<T> {
-    const _preferences = username ? this._userPreferences : this._systemPreferences;
-
-    if (!_preferences.has(section)) {
+  private async getPreferences<TValue>(
+    section: string,
+    key: string,
+    defaultValue: TValue,
+    username: string
+  ): Promise<TValue> {
+    if (!this.PreferencesMap.has(section)) {
       await this.writePreferencesMap(section, username);
     }
 
-    const keyValuePair = _preferences.get(section);
+    const sectionPreferences = this.PreferencesMap.get(section);
 
-    if (!keyValuePair?.has(key)) {
-      return defaultValue;
-    }
-
-    const value = keyValuePair.get(key);
+    const value = sectionPreferences?.[key];
 
     if (!value) {
       return defaultValue;
     }
 
-    if (typeof defaultValue === 'string') {
-      return value as unknown as T;
-    }
-
-    return JSON.parse(value as string) as T;
+    return value as unknown as TValue;
   }
 
-  private async writePreferencesMap(section: string, username: string): Promise<Map<string, Map<string, string>>> {
-    const _preferences = username ? this._userPreferences : this._systemPreferences;
-    const preference = await this.getLeanPreference(section, username);
-    const value = preference?.value;
+  private async writePreferencesMap(section: string, username: string): Promise<void> {
+    const preferences = await this.getLeanPreferences(section, username);
+    const sectionPreferences = preferences?.sectionPreferences;
 
-    if (value) {
-      const keyValuePair = new Map<string, string>();
-      const lines = value.split('\r\n').filter((x) => !!x);
-
-      lines.forEach((v) => {
-        const parts = v.split('=', 2).filter((x) => !!x);
-        if (parts.length === 2) {
-          keyValuePair.set(parts[0], parts[1]);
-        }
-      });
-      _preferences.set(section, keyValuePair);
+    if (sectionPreferences) {
+      this.PreferencesMap.set(section, sectionPreferences);
     }
-
-    return _preferences;
   }
 
-  private async setPreferences<T>(section: string, key: string, value: T, username: string): Promise<void> {
-    const _preferences = username ? this._userPreferences : this._systemPreferences;
-    if (!_preferences.has(section)) {
+  private async setPreferences<TValue>(section: string, key: string, value: TValue, username: string): Promise<void> {
+    const _preferencesMap = this.PreferencesMap;
+
+    if (!_preferencesMap.has(section)) {
       await this.writePreferencesMap(section, username);
     }
-    const keyValuePair = _preferences.get(section);
-    if (keyValuePair) {
-      _preferences.set(section, keyValuePair.set(key, value as unknown as string));
+    const sectionWisePreferences = _preferencesMap.get(section);
+
+    if (sectionWisePreferences) {
+      sectionWisePreferences[key] = value;
+      _preferencesMap.set(section, sectionWisePreferences);
     } else {
-      _preferences.set(section, new Map<string, string>([[key, value as unknown as string]]));
+      _preferencesMap.set(section, { [key]: value });
     }
   }
 }

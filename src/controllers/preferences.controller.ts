@@ -15,7 +15,7 @@ export default class PreferencesController extends BaseController {
   public getPreferences = async (req: Request, res: Response) => {
     logger.info(`Preferences.getPreferences beginning ${req.path}`);
 
-    const response = await this._preferencesService.getPreferences();
+    const response = await this._preferencesService.getPreferencesAsync();
 
     logger.info(`Preferences.getPreferences returning`);
 
@@ -25,7 +25,7 @@ export default class PreferencesController extends BaseController {
   public setDarkTheme = async (req: Request, res: Response) => {
     logger.info(`Preferences.setDarkTheme beginning ${req.path}`);
 
-    await this._preferencesService.setDarkTheme(req.body.enableDarkTheme);
+    await this._preferencesService.setDarkThemeAsync(req.body.enableDarkTheme);
 
     logger.info(`Preferences.setDarkTheme returning`);
 
@@ -35,7 +35,7 @@ export default class PreferencesController extends BaseController {
   public setLocale = async (req: Request, res: Response) => {
     logger.info(`Preferences.setLocale beginning ${req.path}`);
 
-    await this._preferencesService.setLocale(req.body.locale);
+    await this._preferencesService.setLocaleAsync(req.body.locale);
 
     logger.info(`Preferences.setLocale returning`);
 

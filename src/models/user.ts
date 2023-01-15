@@ -38,16 +38,6 @@ const userSchema = new mongoose.Schema<IUserSchema>(
       }
     },
     avatar: { type: Buffer },
-    username: {
-      type: String,
-      required: [true, 'username is required'],
-      immutable: true,
-      unique: true,
-      lowercase: true,
-      minLength: [4, 'username should be in between 4 to 10 charcters'],
-      MaxLength: [10, 'username should be in between 4 to 10 charcters'],
-      trim: true
-    },
     password: {
       type: String,
       required: [true, 'password is required  '],
@@ -79,18 +69,18 @@ const userSchema = new mongoose.Schema<IUserSchema>(
 
 //#region  METHODS
 
-userSchema.methods.updateUserLockedInformation = async function (isPasswordValid: boolean) {
+userSchema.methods.updateUserLockedInformationAsync = async function (isPasswordValid: boolean) {
   let count = this.failureAttempt;
   this.failureAttempt = isPasswordValid ? 0 : count + 1;
   this.lockedAt = isPasswordValid ? null : new Date();
   await this.save({ validateBeforeSave: false });
 };
 
-userSchema.methods.isOldPasswordAndCurrentPasswordMatch = async function (userInputPassword: string) {
+userSchema.methods.isOldAndCurrentPasswordSameAsync = async function (userInputPassword: string) {
   return await bcrypt.compare(userInputPassword, this.password);
 };
 
-userSchema.methods.isPasswordValid = async function (userInputPassword: string) {
+userSchema.methods.isPasswordValidAsync = async function (userInputPassword: string) {
   if (userInputPassword) {
     return await bcrypt.compare(userInputPassword, this.password);
   }
@@ -119,7 +109,7 @@ userSchema.virtual('isUserLocked').get(function (this: any) {
 
 userSchema.pre('save', async function (next) {
   const self = this as any;
-  self.createdBy = self.username?.toLowerCase();
+  self.createdBy = self._id?.toString()?.toLowerCase();
   self.lastUpdatedBy = self.createdBy;
 
   if (self.isNew) {

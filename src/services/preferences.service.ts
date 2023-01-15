@@ -9,21 +9,21 @@ export default class PreferencesService {
     this._preferencesManager = preferencesManager;
   }
 
-  public async getPreferences() {
+  public async getPreferencesAsync() {
     return Promise.resolve(
       new ApiResponse(
-        await this._preferencesManager.getUserPreferencesBySection<GeneralPreferences>('general-preferences')
+        await this._preferencesManager.getUserPreferencesBySectionAsync<GeneralPreferences>('general-preferences')
       )
     );
   }
 
-  public async setDarkTheme(enable: boolean): Promise<void> {
-    await this._preferencesManager.setDarkTheme(enable);
-    await this._preferencesManager.update();
+  public async setDarkThemeAsync(enable: boolean): Promise<void> {
+    await this._preferencesManager.setDarkThemeAsync(enable);
+    await this._preferencesManager.updateAsync();
   }
 
-  public async setLocale(locale: string): Promise<void> {
-    await this._preferencesManager.setUserLocale(locale);
-    await this._preferencesManager.update();
+  public async setLocaleAsync(locale: string): Promise<void> {
+    await this._preferencesManager.setUserLocaleAsync(locale);
+    await this._preferencesManager.updateAsync();
   }
 }

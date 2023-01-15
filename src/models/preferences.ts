@@ -3,7 +3,7 @@ import IPrefrencesSchema from './interfaces/preferences-schema';
 
 const preferencesSchema = new mongoose.Schema<IPrefrencesSchema>(
   {
-    username: {
+    userId: {
       type: String,
       required: true
     },

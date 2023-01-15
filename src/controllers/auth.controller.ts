@@ -17,13 +17,13 @@ export default class AuthController extends BaseController {
   }
 
   public token = async (req: Request, res: Response) => {
-    const { usernameOrEmail, password } = req.body as Login;
+    const { email, password } = req.body as Login;
     logger.info(`Auth.token beginning ${req.path}`);
     let result: ApiResponse;
-    const filter = { $or: [{ username: usernameOrEmail }, { email: usernameOrEmail }] };
-    result = await this._authService.validateUser(filter, password);
+    const filter = { email };
+    result = await this._authService.validateUserAsync(filter, password);
     if (result.statusCode === StatusCodes.OK) {
-      result = await this._authService.generateToken(result.content.username);
+      result = await this._authService.generateTokenAsync(result.content._id);
     }
 
     logger.info(`Auth.token returning`);
@@ -31,9 +31,9 @@ export default class AuthController extends BaseController {
   };
 
   public forgotPassword = async (req: Request, res: Response) => {
-    const { usernameOrEmail } = req.body;
+    const { email } = req.body;
     logger.info(`Auth.forgotPassword beginning ${req.path}`);
-    const result = await this._authService.sendPasswordResetLink(usernameOrEmail);
+    const result = await this._authService.sendPasswordResetLinkAsync(email);
     logger.info(`Auth.forgotPassword returning`);
     return this.sendResponse(res, result);
   };
@@ -48,11 +48,11 @@ export default class AuthController extends BaseController {
     }
 
     let result: ApiResponse;
-    const filter = { username: req.currentUsername };
-    result = await this._authService.validateUser(filter, oldPassword, req.translate('oldPasswordWrong'));
+    const filter = { _id: req.currentUserId };
+    result = await this._authService.validateUserAsync(filter, oldPassword, req.translate('oldPasswordWrong'));
 
     if (result.statusCode === StatusCodes.OK) {
-      result = await this._authService.changePassword(result.content, password);
+      result = await this._authService.changePasswordAsync(result.content, password);
     }
 
     logger.info(`Auth.changePassword returning`);

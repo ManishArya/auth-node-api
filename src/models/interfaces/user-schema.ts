@@ -6,7 +6,6 @@ export default interface IUserSchema extends BaseSchema {
   email: string;
   mobile: string;
   avatar: Buffer;
-  username: string;
   password: string;
   isAdmin: boolean;
   hasLocked: boolean;
@@ -14,7 +13,7 @@ export default interface IUserSchema extends BaseSchema {
   lockedAt: Date | null;
   isUserLocked: boolean;
   roles: Role[];
-  isPasswordValid: (password: string) => Promise<boolean>;
-  isOldPasswordAndCurrentPasswordMatch: (password: string) => Promise<boolean>;
-  updateUserLockedInformation: (isPasswordValid: boolean) => Promise<void>;
+  isPasswordValidAsync: (password: string) => Promise<boolean>;
+  isOldAndCurrentPasswordSameAsync: (password: string) => Promise<boolean>;
+  updateUserLockedInformationAsync: (isPasswordValid: boolean) => Promise<void>;
 }

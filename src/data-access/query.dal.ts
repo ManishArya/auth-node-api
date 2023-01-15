@@ -8,52 +8,52 @@ export default class QueryDAL<TSchema extends BaseSchema> {
     this._db = db;
   }
 
-  public async getFilterRecord(filterQuery: FilterQuery<TSchema>) {
+  public async getFilterRecordAsync(filterQuery: FilterQuery<TSchema>) {
     return await this._db.findOne(filterQuery);
   }
 
-  public async getFilterRecordWithAllRefs(filterQuery: FilterQuery<TSchema>, options: PopulateOptions) {
+  public async getFilterRecordWithOptionsAsync(filterQuery: FilterQuery<TSchema>, options: PopulateOptions) {
     return await this._db.findOne(filterQuery).populate(options).lean().exec();
   }
 
-  public async getFilterLeanRecord(filterQuery: FilterQuery<TSchema>): Promise<TSchema> {
+  public async getFilterLeanRecordAsync(filterQuery: FilterQuery<TSchema>): Promise<TSchema> {
     return await this._db.findOne(filterQuery).lean();
   }
 
-  public async getFilterNLeanRecords(n: number, filterQuery: FilterQuery<TSchema>) {
+  public async getFilterNLeanRecordsAsync(n: number, filterQuery: FilterQuery<TSchema>) {
     return await this._db.find(filterQuery).lean().limit(n);
   }
 
-  public async getFilterRecords(filterQuery: FilterQuery<TSchema>) {
+  public async getFilterRecordsAsync(filterQuery: FilterQuery<TSchema>) {
     return await this._db.find(filterQuery);
   }
 
-  public async getFilterLeanRecords(filterQuery: FilterQuery<TSchema>) {
+  public async getFilterLeanRecordsAsync(filterQuery: FilterQuery<TSchema>) {
     return await this._db.find(filterQuery).lean();
   }
 
-  public async getSortedFilterLeanRecords(filterQuery: FilterQuery<TSchema>, sortParams: any) {
+  public async getSortedFilterLeanRecordsAsync(filterQuery: FilterQuery<TSchema>, sortParams: any) {
     return await this._db.find(filterQuery).sort(sortParams).lean();
   }
 
-  public async getRecords() {
+  public async getRecordsAsync() {
     return await this._db.find();
   }
 
-  public async findAndDeleteRecord(filterQuery: FilterQuery<TSchema>) {
+  public async findAndDeleteRecordAsync(filterQuery: FilterQuery<TSchema>) {
     return await this._db.findOneAndDelete(filterQuery);
   }
 
-  public async checkRecordExists(filterQuery: FilterQuery<TSchema>) {
+  public async checkRecordExistsAsync(filterQuery: FilterQuery<TSchema>) {
     return await this._db.exists(filterQuery);
   }
 
-  public async saveRecord(record: Partial<TSchema>) {
+  public async saveRecordAsync(record: Partial<TSchema>) {
     const db = new this._db(record);
     return await db.save();
   }
 
-  public async findAndUpdateLeanRecord(filterQuery: FilterQuery<TSchema>, updateQuery: UpdateQuery<TSchema>) {
+  public async findAndUpdateLeanRecordAsync(filterQuery: FilterQuery<TSchema>, updateQuery: UpdateQuery<TSchema>) {
     return await this._db
       .findOneAndUpdate(filterQuery, updateQuery, {
         returnOriginal: false,
@@ -62,7 +62,7 @@ export default class QueryDAL<TSchema extends BaseSchema> {
       .lean();
   }
 
-  public async updateRecord(filterQuery: FilterQuery<TSchema>, updateQuery: UpdateQuery<TSchema>, upsert = false) {
+  public async updateRecordAsync(filterQuery: FilterQuery<TSchema>, updateQuery: UpdateQuery<TSchema>, upsert = false) {
     return await this._db.updateOne(filterQuery, updateQuery, {
       returnOriginal: false,
       runValidators: true,
@@ -70,15 +70,15 @@ export default class QueryDAL<TSchema extends BaseSchema> {
     });
   }
 
-  public async deleteRecord(filterQuery: FilterQuery<TSchema>, isLean: boolean = true) {
+  public async deleteRecordAsync(filterQuery: FilterQuery<TSchema>, isLean: boolean = true) {
     return await this._db.deleteOne(filterQuery, { lean: isLean });
   }
 
-  public async createNewRecord(document: TSchema) {
+  public async createNewRecordAsync(document: TSchema) {
     return await this._db.create(document);
   }
 
-  public async getRecordCount() {
+  public async getRecordCountAsync() {
     return await this._db.count();
   }
 }

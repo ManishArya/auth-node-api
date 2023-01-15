@@ -3,7 +3,7 @@ import IPasswordHistorySchema from './interfaces/password-history-schema';
 
 const passwordHistorySchema = new mongoose.Schema<IPasswordHistorySchema>(
   {
-    username: {
+    userId: {
       type: String
     },
     password: {

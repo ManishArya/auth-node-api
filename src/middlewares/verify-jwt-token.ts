@@ -17,13 +17,13 @@ export default async (req: Request, res: any, next: NextFunction) => {
 
       logger.info(`User is authenticate againts Bearer scheme`);
 
-      req.currentUsername = decodeToken.payload['username'];
+      req.currentUserId = decodeToken.payload['userId'];
       req.scope.register({
-        username: asValue(req.currentUsername)
+        userId: asValue(req.currentUserId)
       });
 
       const p = req.scope.resolve<IPreferenceManager>('preferencesManager');
-      const locale = await p.getUserLocale();
+      const locale = await p.getUserLocaleAsync();
 
       req.setLocale(locale);
       i18n.setLocale(locale);

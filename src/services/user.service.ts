@@ -12,22 +12,22 @@ import JwtHelper from '../utils/jwt-helper';
 import MailService from './mail.service';
 
 export default class UserService {
-  private readonly currentUsername: string;
+  private readonly currentUserId: string;
   private readonly _userDAL: QueryDAL<IUserSchema>;
   private readonly _mailService: MailService;
 
-  constructor(userDAL: QueryDAL<IUserSchema>, mailService: MailService, username: string = '') {
+  constructor(userDAL: QueryDAL<IUserSchema>, mailService: MailService, userId: string = '') {
     this._userDAL = userDAL;
     this._mailService = mailService;
-    this.currentUsername = username;
+    this.currentUserId = userId;
   }
 
-  public async validateUser(
+  public async validateUserAsync(
     filter: any,
     password: string,
     errorMessage = 'Credential is wrong !!!'
   ): Promise<AuthResponse> {
-    const user = await this._userDAL.getFilterRecord(filter);
+    const user = await this._userDAL.getFilterRecordAsync(filter);
 
     if (!user) {
       errorMessage = translate('userNotFound');
@@ -38,9 +38,9 @@ export default class UserService {
       return new AuthResponse(translate('userLocked'), StatusCodes.BAD_REQUEST, LoginCode.locked);
     }
 
-    const isPasswordValid = await user.isPasswordValid(password);
+    const isPasswordValid = await user.isPasswordValidAsync(password);
 
-    await user.updateUserLockedInformation(isPasswordValid);
+    await user.updateUserLockedInformationAsync(isPasswordValid);
 
     if (isPasswordValid) {
       return new AuthResponse(user, StatusCodes.OK, LoginCode.successful);
@@ -49,30 +49,30 @@ export default class UserService {
     return new AuthResponse(errorMessage, StatusCodes.BAD_REQUEST, LoginCode.unsuccessful);
   }
 
-  public async saveUser(userData: Partial<IUserSchema>) {
-    const user = await this._userDAL.saveRecord(userData);
-    const userInfo = await this.getUserPermissions(user.username);
+  public async saveUserAsync(userData: Partial<IUserSchema>) {
+    const user = await this._userDAL.saveRecordAsync(userData);
+    const userInfo = await this.getUserPermissionsAsync(user._id);
     const token = JwtHelper.generateToken(userInfo);
     this._mailService.subject = `Your, ${user.name}, account has created successfully `;
     this._mailService.to = user.email;
-    await this._mailService.send();
+    await this._mailService.sendAsync();
     return new ApiResponse({ token });
   }
 
-  public async editProfile(userData: Partial<IUserSchema>) {
-    return await this.UpdateUser(userData);
+  public async editProfileAsync(userData: Partial<IUserSchema>) {
+    return await this.UpdateUserAsync(userData);
   }
 
-  public async updateAvatar(fileBytes?: Buffer) {
-    return await this.UpdateUser({ avatar: fileBytes });
+  public async updateAvatarAsync(fileBytes?: Buffer) {
+    return await this.UpdateUserAsync({ avatar: fileBytes });
   }
 
-  public async updateEmailAddress(email: string) {
-    return await this.UpdateUser({ email });
+  public async updateEmailAddressAsync(email: string) {
+    return await this.UpdateUserAsync({ email });
   }
 
-  public async getProfile() {
-    const user = await this._userDAL.getFilterLeanRecord({ username: this.currentUsername });
+  public async getProfileAsync() {
+    const user = await this._userDAL.getFilterLeanRecordAsync({ _id: this.currentUserId });
 
     if (!user) {
       throw new NotFoundException('', '');
@@ -81,9 +81,9 @@ export default class UserService {
     return new ApiResponse(new UserProfile(user));
   }
 
-  public async getUserPermissions(username?: string) {
-    const user = await this._userDAL.getFilterRecordWithAllRefs(
-      { username: this.currentUsername || username },
+  public async getUserPermissionsAsync(currentUserId?: string) {
+    const user = await this._userDAL.getFilterRecordWithOptionsAsync(
+      { _id: this.currentUserId || currentUserId },
       { path: 'roles', populate: { path: 'perms' } }
     );
 
@@ -94,22 +94,22 @@ export default class UserService {
     return new UserInfo(user);
   }
 
-  public async getAllUsers() {
-    let users = await this._userDAL.getRecords();
+  public async getAllUsersAsync() {
+    let users = await this._userDAL.getRecordsAsync();
     users = users.map((u: any) => u.toObject());
     return new ApiResponse(users);
   }
 
-  public async deleteUser(username: string) {
-    await this._userDAL.findAndDeleteRecord({ username });
+  public async deleteUserAsync(userId: string) {
+    await this._userDAL.findAndDeleteRecordAsync({ _id: userId });
     return new ApiResponse('User Deleted Successfully', StatusCodes.NO_CONTENT);
   }
 
-  private async UpdateUser(data: Partial<IUserSchema>) {
-    const username = this.currentUsername;
-    data.lastUpdatedBy = username?.toLowerCase();
+  private async UpdateUserAsync(data: Partial<IUserSchema>) {
+    const userId = this.currentUserId;
+    data.lastUpdatedBy = userId?.toLowerCase();
 
-    const user = await this._userDAL.findAndUpdateLeanRecord({ username }, data);
+    const user = await this._userDAL.findAndUpdateLeanRecordAsync({ _id: userId }, data);
 
     if (user) {
       return new ApiResponse(new UserProfile(user));

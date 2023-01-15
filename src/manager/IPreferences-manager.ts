@@ -1,10 +1,10 @@
 export interface IPreferenceManager {
-  getDarkTheme: () => Promise<boolean>;
-  getUserLocale: () => Promise<string>;
-  setDarkTheme: (enable: boolean) => Promise<void>;
-  setUserLocale: (locale: string) => Promise<void>;
-  update: () => Promise<void>;
-  getUserPreferencesBySection: <T>(section: ValueOf<SectionName>) => Promise<T>;
+  getDarkThemeAsync: () => Promise<boolean>;
+  getUserLocaleAsync: () => Promise<string>;
+  setDarkThemeAsync: (enable: boolean) => Promise<void>;
+  setUserLocaleAsync: (locale: string) => Promise<void>;
+  updateAsync: () => Promise<void>;
+  getUserPreferencesBySectionAsync: <T>(section: ValueOf<SectionName>) => Promise<T>;
 }
 
 export class SectionName {

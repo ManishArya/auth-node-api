@@ -2,7 +2,7 @@ import { AddressType } from '../../enums/address-type';
 import BaseSchema from './base-schema';
 
 export default interface IAddressSchema extends BaseSchema {
-  username: string;
+  userId: string;
   name: string;
   mobileNumber: string;
   city: string;

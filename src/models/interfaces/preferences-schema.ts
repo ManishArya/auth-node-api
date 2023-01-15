@@ -1,7 +1,7 @@
 import BaseSchema from './base-schema';
 
 export default interface IPrefrencesSchema extends BaseSchema {
-  username: string;
+  userId: string;
   sectionName: string;
   sectionPreferences: Record<string, any>;
 }

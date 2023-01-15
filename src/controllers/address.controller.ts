@@ -16,7 +16,7 @@ export default class AddressController extends BaseController {
   public getAllAddress = async (req: Request, res: Response) => {
     logger.info(`Address.getAllAddress beginning ${req.path}`);
 
-    const addresses = await this._addressService.getAllAddress();
+    const addresses = await this._addressService.getAllAddressAsync();
 
     logger.info(`Address.getAllAddress returning`);
     return this.sendResponse(res, new ApiResponse(addresses.sort((x, y) => (x.default ? -1 : 0))));
@@ -26,7 +26,7 @@ export default class AddressController extends BaseController {
     logger.info(`Address.saveAddress beginning ${req.path}`);
     const address = req.body as IAddressSchema;
 
-    await this._addressService.saveAddress(address);
+    await this._addressService.saveAddressAsync(address);
 
     logger.info(`Address.saveAddress returning`);
     return this.sendResponse(res, new ApiResponse('Update successfully'));
@@ -36,7 +36,7 @@ export default class AddressController extends BaseController {
     logger.info(`Address.deleteAddress beginning ${req.path}`);
     const id = req.query.id as string;
 
-    await this._addressService.deleteAddress(id);
+    await this._addressService.deleteAddressAsync(id);
     logger.info(`Address.deleteAddress returning`);
     return this.sendResponse(res, new ApiResponse('Deleted successfully'));
   };

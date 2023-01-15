@@ -5,7 +5,7 @@ import IAddressSchema from './interfaces/address-schema';
 
 const addressSchema = new mongoose.Schema<IAddressSchema>(
   {
-    username: {
+    userId: {
       type: String,
       required: true
     },

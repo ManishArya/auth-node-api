@@ -13,9 +13,9 @@ export default class MailService {
     this._emailDAL = mailDAL;
   }
 
-  public async send() {
+  public async sendAsync() {
     try {
-      await this._emailDAL.saveRecord({
+      await this._emailDAL.saveRecordAsync({
         to: this.to,
         subject: this.subject,
         body: this.text,

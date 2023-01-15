@@ -18,7 +18,7 @@ router.put(
 router.delete('/removeAvatar', verifyJwtToken, resolveDependency('userController', 'removeAvatar'));
 router.get('/', verifyJwtToken, resolveDependency('userController', 'getProfile'));
 router.get('/all', verifyJwtToken, resolveDependency('userController', 'getAllUsers'));
-router.delete('/:username?', verifyJwtToken, resolveDependency('userController', 'deleteUser'));
+router.delete('/:userId?', verifyJwtToken, resolveDependency('userController', 'deleteUser'));
 router.post('/deleteUserAccount', verifyJwtToken, resolveDependency('userController', 'deleteUserAccount'));
 router.get('/permissions', verifyJwtToken, resolveDependency('userController', 'getUserPermissions'));
 

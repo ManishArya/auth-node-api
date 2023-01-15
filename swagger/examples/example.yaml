@@ -1,7 +1,5 @@
 components:
   examples:
-    loginWithUsername:
-      value: { 'username': 'admin', 'password': 'write your password here' }
     loginWithEmail:
       value: { 'email': 'manisharya26@gmail.com', 'password': 'write your password here' }
     token:

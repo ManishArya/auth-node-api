@@ -6,13 +6,11 @@ export default class UserProfile {
   public readonly name: string;
   public readonly email: string;
   public readonly mobile: string;
-  public readonly username: string;
 
   constructor(data: IUserSchema) {
     this.name = data.name;
     this.email = data.email;
     this.mobile = data.mobile;
-    this.username = data.username;
     this._id = data._id;
     this.avatar = this.convertBufferToBase64String(data.avatar);
   }

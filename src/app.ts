@@ -1,5 +1,6 @@
 import cors from 'cors';
 import express from 'express';
+import 'express-async-errors';
 import i18n from 'i18n';
 import path from 'path';
 import genericErrorHandler from './middlewares/errors/generic-error-handler';
@@ -25,10 +26,6 @@ const app = express();
 
 app.use((req, res, next) => {
   req.scope = container.createScope();
-  const listener = (err: any) => {
-    if (!res.headersSent) next(err);
-  };
-  process.once('unhandledRejection', listener);
   next();
 });
 

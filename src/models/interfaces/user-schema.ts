@@ -1,5 +1,5 @@
 import BaseSchema from './base-schema';
-import Role from './Role';
+import Role from './role-schema';
 
 export default interface IUserSchema extends BaseSchema {
   name: string;

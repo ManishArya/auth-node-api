@@ -12,7 +12,7 @@ export default class UserInfo {
       this.isAdmin = data.isAdmin;
       const roles = data.roles;
       if (roles.length > 0) {
-        this.perms = [...new Set(roles.flatMap((r) => r.perms.map((r) => RolePermission[r.value])))];
+        this.perms = [...new Set(roles.flatMap((r: any) => r.perms.map((r: any) => RolePermission[r.value])))];
       }
     }
   }

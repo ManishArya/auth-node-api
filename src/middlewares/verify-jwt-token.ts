@@ -32,7 +32,7 @@ export default async (req: Request, res: any, next: NextFunction) => {
     }
 
     throw new Error('token is not Bearer type. Bearer token is valid token');
-  } catch (err) {
+  } catch (err: any) {
     next(new JsonWebTokenError(err.message, err));
   }
 };

@@ -1,5 +1,5 @@
 {
   "db": {
-    "connectionString": "mongodb://localhost/Auth"
+    "connectionString": "mongodb://Database:27017/Auth"
   }
 }

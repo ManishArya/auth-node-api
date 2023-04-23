@@ -10,12 +10,21 @@ services:
       - 3000:3000
     depends_on:
       - Database
+    networks:
+      - db_network
+
   Database:
     image: mongodb/mongodb-community-server:6.0-ubi8
     ports:
       - 27017:27017
     volumes:
       - mongodb:/data/db
+    networks:
+      - db_network
+
 volumes:
   mongodb:
 
+networks:
+  db_network:
+    external: true

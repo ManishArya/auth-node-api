@@ -27,4 +27,4 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           context: .
           push: true
-          tags: ${{secrets.DOCKERHUB_USERNAME}}/my-repo:auth-server-v2
+          tags: ${{secrets.DOCKERHUB_USERNAME}}/my-repo:auth-server-latest
